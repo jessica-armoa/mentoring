@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block style %}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <div class="container">
+    <nav class="navbar bg-body-tertiary">
+      <div class="container-fluid">
+        <h2 class="title">Mentoring.dev</h2>
+        <div class="dropdown">
+          <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {{ initials }}
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="edit/user/{{user_id}}">Editar perfil</a></li>
+            <li><a class="dropdown-item" href="logout">Cerrar sesion</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </div>
+  <div class="row justify-content-end align-items-center">
+    <div class="col-6 d-flex align-items-center">
+      <form method="post" class="d-flex align-items-center ms-1">
+        {% csrf_token %}
+        <p class="mb-0 me-2 col-6">¿Buscas un área en específico?</p>
+        <select class="form-select" id="areaSelect" name="area_id">
+          <option value="0">Todas las áreas</option>
+          {% for area in all_areas %}
+            <option value="{{ area.id }}" {% if selected_area_id == area.id %}selected{% endif %}>{{ area.name }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary ms-2" id="filterButton">
+          <i class="fas fa-search"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="container mt-3">
+    <div class="row">
+    {% if mentors %}
+      {% for mentor in mentors %}
+        {% include 'mentor_card.html' %}
+      {% endfor %}
+    {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+    {% load static %}
+    <script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

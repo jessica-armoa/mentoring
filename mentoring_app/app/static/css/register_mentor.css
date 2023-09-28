@@ -1,0 +1,13 @@
+.paso2, .paso3 {
+  display: none;
+}
+
+.custom-svg {
+  height: 60%;
+  position: fixed;
+  top: 10%;
+  left: 5%;
+}
+.svg-container{
+  z-index: -1;
+}

@@ -1,0 +1,39 @@
+/* Estilos para los pasos */
+.paso {
+  margin-bottom: 30px;
+}
+
+.paso h3 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.paso img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Estilos para los botones de copiar */
+.btn-copiar {
+  margin-top: 10px;
+}
+
+/* Estilos para los inputs y botones de copiar */
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-group .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.input-group button {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Estilos para el botón "Listo" */
+.btn-listo {
+  font-size: 18px;
+}

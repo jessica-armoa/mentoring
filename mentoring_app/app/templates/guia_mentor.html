@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Evento en Calendly{% endblock %}
+
+{% block style %}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/tutorial.css' %}" />
+{% endblock %}
+
+{% block content %}
+  <div class="container text-center">
+    <h1 class="mb-4">Crear Evento en Calendly</h1>
+
+    <!-- Paso 1 -->
+    <div class="paso" data-paso="1">
+      <h3>Paso 1: Crea un evento</h3>
+      <div class="d-flex justify-content-center">
+        <img src="{% static 'img/new-event.png' %}" alt="New Event button" class="img-fluid">
+      </div>
+    </div>
+
+    <!-- Paso 2 -->
+    <div class="paso" data-paso="2">
+      <h3>Paso 2: Ponerle nombre al evento</h3>
+      <div class="row d-flex align-items-center">
+        <div class="col-md-6">
+          <img src="{% static 'img/event-name.png' %}" alt="Nombre Evento" class="img-fluid">
+        </div>
+        <div class="col-md-6 col-6">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" id='1' value="Mentoring.dev" readonly>
+            <button class="btn btn-outline-secondary" type="button" id="button-copiar-1" onclick="copiarTexto('1')">Copiar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Paso 3 -->
+    <div class="paso" data-paso="3">
+      <h3>Paso 3: Elige Google Meet</h3>
+      <div class="row">
+        <div class="col-md-6">
+          <img src="{% static 'img/meet.png' %}" alt="Nombre del Evento" class="img-fluid">
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso 4 -->
+    <div class="paso" data-paso="4">
+      <h3>Paso 4: Descipción</h3>
+      <div class="row d-flex align-items-center">
+        <div class="col-md-6">
+          <p>Copia y pega esto en la descripción</p>
+          <img src="{% static 'img/description.png' %}" alt="Copiar descripción" class="img-fluid">
+        </div>
+        <div class="col-md-6">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" id='2' value="Esta mentoría es gratuita. Una vez reservada la mentoría, ésta se desarrollará en una sala de Google Meet, el link te llegará al correo proporcionado." readonly>
+            <button class="btn btn-outline-secondary" type="button" id="button-copiar-2" onclick="copiarTexto('2')">Copiar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso 5 -->
+    <div class="paso" data-paso="5">
+      <h3>Paso 5: Enlace</h3>
+      <div class="row d-flex align-items-center">
+        <div class="col-md-6">
+          <p>Copia y pega el codigo</p>
+          <img src="{% static 'img/link.png' %}" alt="Copiar Enlace" class="img-fluid">
+        </div>
+        <div class="col-md-6">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" id='3' value="mentoring-dev" readonly>
+            <button class="btn btn-outline-secondary" type="button" id="button-copiar-3" onclick="copiarTexto('3')">Copiar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso 6 -->
+    <div class="paso mb-3" data-paso="5">
+      <div class="row d-flex align-items-center justify-content-center">
+        <a class="btn btn-primary col-6" type="button" href="/dashboard">Listo</a>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block script %}
+    {% load static %}
+    <script src="{% static 'js/guia_mentor.js' %}"></script>
+    <script type="text/javascript">
+
+    </script>
+{% endblock %}

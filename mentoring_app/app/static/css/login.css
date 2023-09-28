@@ -1,0 +1,17 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #ffffff;
+}
+
+.custom-svg {
+  width: 100%;
+  height: auto;
+  fill: #f8f8f8;
+}

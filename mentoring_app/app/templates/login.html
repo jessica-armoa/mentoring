@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+  {% block title %}Login{% endblock %}
+
+  {% block style %}
+  {% load static %}
+      <link rel="stylesheet" href="{% static 'css/login.css' %}">
+  {% endblock %}
+
+  {% block content %}
+  <div class="d-flex align-items-center justify-content-center">
+    <div class="svg-container col-md-6">
+      {% load static %}
+      <img src="{% static 'img/girl_and_boy.svg' %}" alt="SVG" class="custom-svg">
+    </div>
+    <div class="container col-6">
+      <h1 class="mb-4">Login</h1>
+      <form method="post" action="{% url 'login' %}" class="row g-3 needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="mb-1">
+          <label for="validationTooltipEmailLogin" class="form-label">Correo electrónico</label>
+          <div class="input-group has-validation">
+            <input type="email" name="email" class="form-control" id="validationTooltipEmailLogin" aria-describedby="validationTooltipEmailPrepend"
+              placeholder="nombre@ejemplo.com" required>
+          </div>
+        </div>
+        <div class="mb-1">
+          <label for="validationTooltipPasswordLogin" class="form-label">Contraseña</label>
+          <div class="input-group has-validation">
+            <input type="password" name="password" class="form-control" id="validationTooltipPasswordLogin" aria-describedby="validationTooltipPasswordPrepend" required>
+          </div>
+        </div>
+        <div class="col-12">
+          <button class="btn btn-primary" type="submit">Ingresar</button>
+          <p class="mt-2">No tienes una cuenta aún?<a href="#" id="registro-link" class="ms-3">Registrate aquí</a></p>
+        </div>
+      </form>
+      <div id="opciones-registro" style="display: none;" class="container p-0">
+        <h2 class="mb-3 mt-3">Registrarse como:</h2>
+        <div class="d-flex align-content-between">
+          <a class="btn btn-secondary me-3" href="/register/user">Usuario</a>
+          <a class="btn btn-secondary" href="/register/mentor">Mentor</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  {% endblock %}
+
+  {% block script %}
+      {% load static %}
+      <script src="{% static 'js/valid_front.js' %}"></script>
+  {% endblock %}
