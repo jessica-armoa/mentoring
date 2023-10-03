@@ -11,9 +11,3 @@ cancelBtn.addEventListener('click', function () {
     var myModal = new bootstrap.Modal(document.getElementById('del_user_modal'));
     myModal.hide();
 });
-//Confirmar borrar usuario 
-var confirmBtn = document.getElementById('confirm_del_user');
-
-confirmBtn.addEventListener('click', function () {
-    window.location.href = '/delete/user/'; // Reemplaza '/eliminar-cuenta/' con la URL adecuada
-});

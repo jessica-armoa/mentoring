@@ -52,6 +52,7 @@ def login(request):
 def logout(request):
     if 'user_id' in request.session:
         del request.session['user_id']
+        del request.session['is_mentor']
     return redirect("login")
 
 def register_user(request):
@@ -208,32 +209,10 @@ def validate_calendly_username(request):
         return JsonResponse({'valid': True})
     except requests.HTTPError:
         return JsonResponse({'valid': False})
-def delete_user(request, user_id):
-    logged_in_user = request.user
-    print('ESTE ES EL ID DEL USUARIO A ELIMINAR', logged_in_user, "y este es el user_id", user_id)
-
-def delete_us(request, user_id):
-    # Get the logged-in user
-    logged_in_user = request.user
-
-    try:
-        # Try to get the user to delete by their ID
-        user_to_delete = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        # If the user does not exist, you can handle the error or redirect to an error page
-        return redirect('error_page')
-
-    # Check if the logged-in user is the same as the user to delete
-    if logged_in_user == user_to_delete:
-        # Delete the user's account
-        user_to_delete.delete()
-
-        # Optionally, log out the user
-        logout(request)
-
-        # Redirect to a confirmation page or wherever you desire
-        return redirect('login')
-    else:
-        # If the logged-in user is not authorized to delete this user,
-        # you can handle the error or redirect to an authorization error page
-        return redirect('login')
+    
+def delete_user(request, id):
+    user = User.objects.filter(id=id).first()
+    print('ESTE ES EL ID DEL USUARIO A ELIMINAR', user.id)
+    user.delete()
+    logout(request)
+    return redirect('/login')
