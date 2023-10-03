@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 
 from app.models import Area
@@ -29,10 +30,21 @@ def login(request):
         user = User.objects.filter(email=email).first()
 
         print(user.check_password(password))
-
+        
         if user is not None and user.check_password(password):
             request.session['user_id'] = user.id
-            return redirect("/dashboard")
+            
+            mentors = Mentor.objects.all()
+            all_user_id_mentors = [mentor.user_id for mentor in mentors]
+
+            if user.id in all_user_id_mentors:
+                request.session['is_mentor'] = True
+                print("EL USER ES MENTOR")
+                return redirect("/dashboard")
+            else:
+                request.session['is_mentor'] = False
+                print("EL USER NO ES MENTOR")
+                return redirect("/dashboard")
         else:
             messages.error(request, 'Correo electrónico o contraseña incorrectos')
             return redirect("login")
@@ -183,6 +195,7 @@ def dashboard(request):
             'user_in_session': user_in_session,
             'initials': initials,
         }
+
         return render(request, "dashboard.html", context)
 
 def validate_calendly_username(request):
@@ -195,3 +208,32 @@ def validate_calendly_username(request):
         return JsonResponse({'valid': True})
     except requests.HTTPError:
         return JsonResponse({'valid': False})
+def delete_user(request, user_id):
+    logged_in_user = request.user
+    print('ESTE ES EL ID DEL USUARIO A ELIMINAR', logged_in_user, "y este es el user_id", user_id)
+
+def delete_us(request, user_id):
+    # Get the logged-in user
+    logged_in_user = request.user
+
+    try:
+        # Try to get the user to delete by their ID
+        user_to_delete = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        # If the user does not exist, you can handle the error or redirect to an error page
+        return redirect('error_page')
+
+    # Check if the logged-in user is the same as the user to delete
+    if logged_in_user == user_to_delete:
+        # Delete the user's account
+        user_to_delete.delete()
+
+        # Optionally, log out the user
+        logout(request)
+
+        # Redirect to a confirmation page or wherever you desire
+        return redirect('login')
+    else:
+        # If the logged-in user is not authorized to delete this user,
+        # you can handle the error or redirect to an authorization error page
+        return redirect('login')
