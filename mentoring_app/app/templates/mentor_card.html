@@ -28,9 +28,11 @@
             {% endif %}
           </div>
         </div>
+        {% if mentor.user_id != user_id %}
         <div class="d-flex align-items-center">
           <a href="https://calendly.com/{{mentor.user.username}}/mentoring-dev" class="btn btn-primary">Pedir Mentoría</a>
         </div>
+        {% endif %}
       </div>
       <p class="card-text">{{mentor.description}}</p>
       {% for area in mentor.areas.all %}
