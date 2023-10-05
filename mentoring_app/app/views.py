@@ -1,8 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
 
 from app.models import Area
 from app.models import Mentor
@@ -31,9 +29,11 @@ def login(request):
 
         print(user.check_password(password))
 
+
         if user is not None and user.check_password(password):
             request.session['user_id'] = user.id
             messages.success(request, 'Sesión iniciada correctamente')
+
             mentors = Mentor.objects.all()
             all_user_id_mentors = [mentor.user_id for mentor in mentors]
 
@@ -53,7 +53,6 @@ def logout(request):
     if 'user_id' in request.session:
         del request.session['user_id']
         del request.session['is_mentor']
-        messages.success(request, 'Sesión cerrada correctamente')
     return redirect("login")
 
 def register_user(request):
