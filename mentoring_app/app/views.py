@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-
-from django.http import HttpResponse
+from django.shortcuts import render, redirect
 
 from app.models import Area
 from app.models import Mentor
@@ -32,7 +31,19 @@ def login(request):
 
         if user is not None and user.check_password(password):
             request.session['user_id'] = user.id
-            return redirect("/dashboard")
+            messages.success(request, 'Sesión iniciada correctamente')
+
+            mentors = Mentor.objects.all()
+            all_user_id_mentors = [mentor.user_id for mentor in mentors]
+
+            if user.id in all_user_id_mentors:
+                request.session['is_mentor'] = True
+                print("EL USER ES MENTOR")
+                return redirect("/dashboard")
+            else:
+                request.session['is_mentor'] = False
+                print("EL USER NO ES MENTOR")
+                return redirect("/dashboard")
         else:
             messages.error(request, 'Correo electrónico o contraseña incorrectos')
             return redirect("login")
@@ -40,6 +51,9 @@ def login(request):
 def logout(request):
     if 'user_id' in request.session:
         del request.session['user_id']
+        del request.session['is_mentor']
+        print("Se cierra sesion")
+        messages.success(request, 'Sesión cerrada correctamente')
     return redirect("login")
 
 def register_user(request):
@@ -183,6 +197,7 @@ def dashboard(request):
             'user_in_session': user_in_session,
             'initials': initials,
         }
+
         return render(request, "dashboard.html", context)
 
 def validate_calendly_username(request):
@@ -195,3 +210,10 @@ def validate_calendly_username(request):
         return JsonResponse({'valid': True})
     except requests.HTTPError:
         return JsonResponse({'valid': False})
+
+def delete_user(request, id):
+    user = User.objects.filter(id=id).first()
+    print('ESTE ES EL ID DEL USUARIO A ELIMINAR', user.id)
+    user.delete()
+    logout(request)
+    return redirect('/login')

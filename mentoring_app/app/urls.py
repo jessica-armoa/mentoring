@@ -12,4 +12,5 @@ urlpatterns = [
     path('guia/mentor', views.guia_mentor),
     path('dashboard', views.dashboard),
     path('validate_calendly_username/', views.validate_calendly_username, name='validate_calendly_username'),
+    path('delete/user/<int:id>', views.delete_user),
 ]
