@@ -1,5 +1,36 @@
-/*.dashboard-container {
-  background-image: url('img/calendar.svg');
-  background-repeat: no-repeat;
-  background-size: cover;
-}*/
+.frase{
+  background-color: #4362ee7b;
+  padding: 0.5em;
+  border-radius: 7px;
+  box-shadow: 3px 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.mentoria-gratuita {
+  font-size: large;
+  color: #7209B7;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.custom-svg {
+  width: 100%;
+  height: auto;
+  fill: #f8f8f8;
+}
+
+.mentor-card{
+  box-shadow: 3px 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  border-radius: 7px;
+  box-shadow: 3px 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-container{
+  margin-left: 290px;
+}

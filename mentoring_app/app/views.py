@@ -30,10 +30,10 @@ def login(request):
         user = User.objects.filter(email=email).first()
 
         print(user.check_password(password))
-        
+
         if user is not None and user.check_password(password):
             request.session['user_id'] = user.id
-            
+
             mentors = Mentor.objects.all()
             all_user_id_mentors = [mentor.user_id for mentor in mentors]
 
@@ -209,10 +209,17 @@ def validate_calendly_username(request):
         return JsonResponse({'valid': True})
     except requests.HTTPError:
         return JsonResponse({'valid': False})
-    
+
 def delete_user(request, id):
     user = User.objects.filter(id=id).first()
     print('ESTE ES EL ID DEL USUARIO A ELIMINAR', user.id)
     user.delete()
     logout(request)
     return redirect('/login')
+
+
+def calendar(request):
+    if 'user_id' not in request.session:
+            return redirect('login')
+
+    return render(request, "calendar.html")

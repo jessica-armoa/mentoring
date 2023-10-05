@@ -13,3 +13,4 @@ document.getElementById('filterButton').addEventListener('click', function() {
     new bootstrap.Tooltip(tooltipTriggerEl)
     })
 })()
+
