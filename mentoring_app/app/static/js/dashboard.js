@@ -4,3 +4,12 @@ document.getElementById('filterButton').addEventListener('click', function() {
     var url = `/filtrar_mentores/${selectedArea}`;
     this.setAttribute('href', url);
 });
+
+
+(() => {
+    'use strict'
+    const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.forEach(tooltipTriggerEl => {
+    new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+})()
