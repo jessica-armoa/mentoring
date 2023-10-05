@@ -33,7 +33,7 @@ def login(request):
 
         if user is not None and user.check_password(password):
             request.session['user_id'] = user.id
-
+            messages.success(request, 'Sesión iniciada correctamente')
             mentors = Mentor.objects.all()
             all_user_id_mentors = [mentor.user_id for mentor in mentors]
 
@@ -53,6 +53,7 @@ def logout(request):
     if 'user_id' in request.session:
         del request.session['user_id']
         del request.session['is_mentor']
+        messages.success(request, 'Sesión cerrada correctamente')
     return redirect("login")
 
 def register_user(request):
@@ -222,4 +223,20 @@ def calendar(request):
     if 'user_id' not in request.session:
             return redirect('login')
 
-    return render(request, "calendar.html")
+    user_in_session = None
+
+    if 'user_id' in request.session:
+        user_id = request.session['user_id']
+        user_in_session = User.objects.filter(id=user_id).first()
+
+    initials = None
+    if user_in_session is not None:
+        initials = user_in_session.first_name[:1].upper() + user_in_session.last_name[:1].upper()
+
+    if request.method == "GET":
+        context = {
+            'user_id': user_id,
+            'user_in_session': user_in_session,
+            'initials': initials,
+        }
+        return render(request, "calendar.html", context)
