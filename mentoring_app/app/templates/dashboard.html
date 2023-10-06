@@ -21,7 +21,7 @@
             {% if request.session.is_mentor == True %}
             <li><a class="dropdown-item" href="edit/mentor/{{user_id}}">Editar perfil</a></li>
             {% elif request.session.is_mentor == False %}
-            <li><a class="dropdown-item text-danger" href="edit/user/{{user_id}}">Editar perfil</a></li>
+            <li><a class="dropdown-item" href="edit/user/{{user_id}}">Editar perfil</a></li>
             {% endif %}
             <li><a class="dropdown-item" href="logout">Cerrar sesion</a></li>
             <li><a class="dropdown-item text-danger" id="show_del_modal" data-bs-toggle="modal" data-bs-target="#del_user_modal" href="#">Eliminar cuenta</a></li>
