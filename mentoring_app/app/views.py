@@ -53,6 +53,7 @@ def logout(request):
     if 'user_id' in request.session:
         del request.session['user_id']
         del request.session['is_mentor']
+        messages.success(request, 'Sesión cerrada correctamente')
     return redirect("login")
 
 def register_user(request):
@@ -63,11 +64,13 @@ def register_user(request):
         if form.is_valid():
             user = form.save()
             print("*************** Usuario guardado:  " + user.email)
+            messages.success(request, 'Usuario creado correctamente')
             return redirect('/login')
         else:
             errors = form.errors
-            context = {'errors': errors}
-            return render(request, "register-user.html", context)
+            for e in errors:
+                messages.error(request, e+" incorrecto, favor verifique sus datos.")
+            return render(request, "register-user.html")
 
 def register_mentor(request):
     if request.method == "GET":
@@ -99,14 +102,26 @@ def register_mentor(request):
 
             if user is not None and user.check_password(request.POST['password1']):
                 request.session['user_id'] = user.id
-                return redirect('/guia/mentor')
-            else:
-                errors = form.errors
-                context = {'errors': errors}
-                return render(request, "register-mentor.html", context)
+                mentors = Mentor.objects.all()
+            all_user_id_mentors = [mentor.user_id for mentor in mentors]
 
-        context = {'all_areas': Area.objects.all(), 'form': form}
-        return render(request, "register-mentor.html", context)
+            if user.id in all_user_id_mentors:
+                request.session['is_mentor'] = True
+                print("EL USER ES MENTOR")
+                messages.success(request, 'Mentor creado correctamente')
+                return redirect("/dashboard")#Aqui estaba la guia del mentor pero ya no vamos a usar por ahora
+            else:
+                request.session['is_mentor'] = False
+                print("EL USER NO ES MENTOR")
+                messages.success(request, 'Mentor creado correctamente')
+                return redirect("/dashboard")
+        else:
+            errors = form.errors
+            for e in errors:
+                messages.error(request, e+" incorrecto, favor verifique sus datos.")
+                context = {'all_areas': Area.objects.all(), 'form': form}
+            return render(request, "register-mentor.html",context)
+
 
 def guia_mentor(request):
     if 'user_id' not in request.session:
@@ -147,7 +162,7 @@ def edit_user(request, id):
 
         user.save()
 
-        # Redireccionar o hacer lo que necesites después de la actualización
+        messages.success(request, 'Los datos se han actualizado')
         return redirect('/dashboard')
 
 
@@ -215,6 +230,8 @@ def delete_user(request, id):
     print('ESTE ES EL ID DEL USUARIO A ELIMINAR', user.id)
     user.delete()
     logout(request)
+
+    messages.success(request, 'La cuenta se ha eliminado correctamente')
     return redirect('/login')
 
 

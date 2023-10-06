@@ -16,20 +16,6 @@
     novalidate
   >
     {% csrf_token %}
-    <div class="mb-3">
-        {% if errors %}
-            <ul class="errorlist">
-                {% for field, error_list in errors.items %}
-                    <ul class="nested-errorlist">
-                        {% for error in error_list %}
-                            <li class="text-danger">{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    </div>
-
     <div class="row mt-3">
       <div class="col mb-1">
         <label for="validationTooltipFirstName" class="form-label"
