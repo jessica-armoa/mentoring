@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Edit user{% endblock %}
+
+{% block style %}
+{% load static %}
+{% endblock %}
+
+{% block content %}
+<div class="container col-6">
+    <h1 class="mb-4">Editar cuenta: {{user.first_name}} {{user.last_name}}</h1>
+    <form class="flip-card__form row g-3 needs-validation" method="post" action="" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+            {% if errors %}
+            <ul class="errorlist">
+                {% for field, error_list in errors.items %}
+                <ul class="nested-errorlist">
+                    {% for error in error_list %}
+                    <li class="text-danger">{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        <h2>DATOS DE USUARIO</h2>
+        <div class="row mt-3">
+            <div class="col mb-1">
+                <label for="validationTooltipFirstName" class="form-label">First name</label>
+                <input type="text" name="first_name" class="form-control" id="validationTooltipFirstName"
+                    value="{{user.first_name}}" required />
+            </div>
+            <div class="col mb-1">
+                <label for="validationTooltipLastName" class="form-label">Last name</label>
+                <input type="text" name="last_name" class="form-control" id="validationTooltipLastName"
+                    value="{{user.last_name}}" required />
+            </div>
+
+            <div class="mb-1 mt-3">
+                <label for="validationTooltipUsername" class="form-label">Username</label>
+                <div class="input-group has-validation">
+                    <input type="text" name="username" class="form-control" id="validationTooltipUsername"
+                        value="{{user.username}}" />
+                </div>
+            </div>
+            <div class="mb-1">
+                <label for="validationTooltipEmail" class="form-label">Email</label>
+                <div class="input-group has-validation">
+                    <input type="email" name="email" class="form-control" id="validationTooltipEmail"
+                        aria-describedby="validationTooltipEmailPrepend" placeholder="name@example.com"
+                        value="{{user.email}}" required />
+                </div>
+            </div>
+            <div class="mb-1">
+                <label for="validationTooltipPassword" class="form-label">Password</label>
+                <div class="input-group has-validation">
+                    <input type="password" name="password1" class="form-control" id="validationTooltipPassword"
+                        aria-describedby="validationTooltipPasswordPrepend" />
+                </div>
+            </div>
+            <div class="mb-1">
+                <label for="validationTooltipPassword2" class="form-label">Confirm Password</label>
+                <div class="input-group has-validation">
+                    <input type="password" name="password2" class="form-control" id="validationTooltipPassword2"
+                        aria-describedby="validationTooltipPasswordPrepend" />
+                </div>
+            </div>
+            <h2>DATOS DE MENTOR</h2>
+            <div class="mb-1">
+                <label for="validationTooltipDescription" class="form-label">Descripción</label>
+                <textarea type="url" name="description" class="form-control" id="validationTooltipDescription" required>{{user.mentor.description}}</textarea>
+            </div>
+            <div class="mb-1">
+                <label for="validationTooltipWeb" class="form-label">Link de tu web personal o portafolio</label>
+                <input type="text" name="web" class="form-control" id="validationTooltipWeb" value="{{user.mentor.web}}"/>
+            </div>
+            <div class="mb-1 mt-3">
+                <label for="validationTooltipGithub" class="form-label">Link de Github</label>
+                <div class="input-group has-validation">
+                    <input type="url" name="github" class="form-control" id="validationTooltipGithub"
+                        aria-describedby="validationTooltipEmailPrepend" value="{{user.mentor.github}}"/>
+                </div>
+            </div>
+            <div class="mb-1 mt-3">
+                <label for="validationTooltipLinkedin" class="form-label">Link de LinkedIn</label>
+                <div class="input-group has-validation">
+                    <input type="url" name="linkedin" class="form-control" id="validationTooltipLinkedin"
+                        aria-describedby="validationTooltipPasswordPrepend" value="{{user.mentor.linkedin}}" />
+                </div>
+            </div>
+            <div class="mb-1 mt-3">
+                <label for="validationTooltipAreas" class="form-label">Elige las áreas en las que deseas ayudar</label>
+                <div class="input-group has-validation">
+                    {% for area in all_areas %}
+                    <div class="form-check form-check-inline">
+                        <input type="checkbox" name="areas" value="{{ area.id }}" class="form-check-input"
+                            id="area{{ area.id }}" {% if area in mentor_areas %} checked {% endif %} >
+                        <label class="form-check-label" for="area{{ area.id }}">{{ area.name }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary" type="submit">Guardar cambios</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block script %}
+{% load static %}
+<script src="{% static 'js/register_user.js' %}"></script>
+{% endblock %}

@@ -216,3 +216,61 @@ def delete_user(request, id):
     user.delete()
     logout(request)
     return redirect('/login')
+
+def edit_mentor(request, id):
+    if 'user_id' not in request.session:
+            return redirect('login')
+
+    user = User.objects.filter(id=id).first()
+    mentor = Mentor.objects.get(user=user)  
+
+    if request.method == 'GET':
+        print("User a editar ", user.email)
+        
+        mentor_areas = mentor.areas.all()  
+        context = {'user': user, 'all_areas': Area.objects.all(), 'mentor_areas': mentor_areas,}
+        return render(request, "edit_mentor.html", context)
+
+    if request.method == 'POST':
+        new_first_name = request.POST.get('first_name')
+        new_last_name = request.POST.get('last_name')
+        new_username = request.POST.get('username')
+        new_email = request.POST.get('email')
+        new_password = request.POST.get('password1')
+
+        # Actualizar first_name y last_name siempre
+        user.first_name = new_first_name
+        user.last_name = new_last_name
+
+        # Actualizar username sin verificar si es único
+        user.username = new_username
+
+        # Actualizar email sin verificar si es único
+        user.email = new_email
+
+        # Actualizar contraseña solo si se proporciona una nueva y es diferente
+        if new_password:
+            user.set_password(new_password)
+
+        user.save()
+      
+    # Actualiza los campos del mentor según sea necesario
+        new_description = request.POST.get('description')
+        new_linkedin = request.POST.get('linkedin')
+        new_website = request.POST.get('web')
+        new_github = request.POST.get('github')
+    # Actualizar campos del modelo Mentor
+        mentor.description = new_description
+        mentor.linkedin = new_linkedin
+        mentor.website = new_website
+        mentor.github = new_github
+    # Actualizar áreas seleccionadas
+        selected_areas = request.POST.getlist('areas')  # Obtiene una lista de áreas seleccionadas
+        mentor.areas.set(selected_areas)  # Actualiza las áreas asociadas al mentor
+
+    # Guarda los cambios en el mentor
+        mentor.save()
+
+
+        # Redireccionar o hacer lo que necesites después de la actualización
+        return redirect('/dashboard')
