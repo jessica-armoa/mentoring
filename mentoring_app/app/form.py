@@ -103,21 +103,6 @@ class CustomMentorCreationForm(forms.ModelForm):
         model = User
         fields = ['username','first_name', 'last_name', 'email', 'password1', 'password2', 'areas']
 
-    """def save(self, commit=True):
-        user = super().save(commit=True)
-        user.email = self.cleaned_data['email']
-        if commit:
-            user.save()
-            mentor = Mentor.objects.create(
-                user=user,
-                description=self.cleaned_data['description'],
-                website=self.cleaned_data['website'],
-                github=self.cleaned_data['github'],
-                linkedin=self.cleaned_data['linkedin']
-            )
-            mentor.areas.set(self.cleaned_data['areas'])
-            return mentor"""
-
     def clean_email(self):
         """Clean email."""
 
