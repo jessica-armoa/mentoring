@@ -9,4 +9,5 @@ pymysql = "*"
 requests = "*"
 
 [dev-packages]
-
+faker = "*"
+pytz = "*"
