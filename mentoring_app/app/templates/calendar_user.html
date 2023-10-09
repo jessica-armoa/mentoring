@@ -47,6 +47,8 @@
 
   <div class="dashboard-container d-flex">
     <div id="calendar" class="card m-2"></div>
+    <button id="addEventButton">Agregar Evento</button>
+    <p id="selectedDate">Fecha seleccionada: Ninguna</p>
   </div>
 {% endblock %}
 
@@ -59,18 +61,39 @@
       document.addEventListener('DOMContentLoaded', function() {
         var calendarEl = document.getElementById('calendar');
         var calendar = new FullCalendar.Calendar(calendarEl, {
+          height: 600,
+          aspectRatio: 2,
+          //contentHeight: 800,
           selectable: true,
           businessHours: true,
           dayMaxEvents: true,
-          events: [
-            {
-              title: 'All Day Event',
-              start: '2023-10-10'
-            },
-          ],
+          select: function(info) {
+            // Manejar la selección de fecha
+            var selectedDate = info.start;
+            document.getElementById('selectedDate').textContent = 'Fecha seleccionada: ' + selectedDate.toLocaleDateString();
+    
+            // Habilitar el botón "Agregar Evento"
+            document.getElementById('addEventButton').removeAttribute('disabled');
+            document.getElementById('addEventButton').addEventListener('click', function() {
+              // Aquí puedes mostrar un cuadro de diálogo o un formulario para que el usuario ingrese detalles del evento
+              // Luego, puedes crear el evento utilizando AJAX o cualquier método que prefieras y agregarlo al calendario.
+              // Por ejemplo:
+              calendar.addEvent({
+                title: 'Nuevo Evento',
+                start: selectedDate,
+                allDay: true // Si el evento es de todo el día
+              });
+    
+              // Deshabilitar el botón después de agregar el evento
+              document.getElementById('addEventButton').setAttribute('disabled', true);
+            });
+          },
           eventColor: '#7209B7',
         });
+    
         calendar.render();
       });
     </script>
+    
+    
 {% endblock %}

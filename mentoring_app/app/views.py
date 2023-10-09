@@ -239,3 +239,25 @@ def calendar(request):
             'initials': initials,
         }
         return render(request, "calendar.html", context)
+    
+def calendar_user(request):
+    if 'user_id' not in request.session:
+            return redirect('login')
+
+    user_in_session = None
+
+    if 'user_id' in request.session:
+        user_id = request.session['user_id']
+        user_in_session = User.objects.filter(id=user_id).first()
+
+    initials = None
+    if user_in_session is not None:
+        initials = user_in_session.first_name[:1].upper() + user_in_session.last_name[:1].upper()
+
+    if request.method == "GET":
+        context = {
+            'user_id': user_id,
+            'user_in_session': user_in_session,
+            'initials': initials,
+        }
+        return render(request, "calendar_user.html", context)

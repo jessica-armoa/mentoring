@@ -1,0 +1,28 @@
+.calendario-boton {
+    display: block;
+    margin-top: 5px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.calendario-boton:hover {
+    background-color: #0056b3;
+}
+
+.agregar-evento-boton {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.agregar-evento-boton:hover {
+    background-color: #0056b3;
+}
