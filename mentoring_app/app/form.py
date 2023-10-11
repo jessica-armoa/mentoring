@@ -3,10 +3,17 @@
 # Django
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+from django.utils import timezone
+
+# Otros
+from datetime import datetime
 
 # Models
+from django.contrib.auth.models import User
 from app.models import Area
+from app.models import Meeting
+from app.models import Availability
+
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -111,4 +118,31 @@ class CustomMentorCreationForm(forms.ModelForm):
             raise forms.ValidationError(message="El correo ya existe, intente con otro")
         return self.cleaned_data["email"]
 
+class AvailabilityForm(forms.ModelForm):
+    class Meta:
+        model = Availability
+        fields = ['hour']
 
+    def clean_hour(self):
+        hour = self.cleaned_data.get('hour')
+
+        if hour < datetime.now():
+            raise forms.ValidationError("La fecha y hora deben ser en el presente o en el futuro.")
+
+        return hour
+
+class CustomMeetingForm(forms.ModelForm):
+    class Meta:
+        model = Meeting
+        fields = ['start', 'description', 'link']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start = cleaned_data.get('start')
+
+        if start:
+            # Calcula el end como media hora después del start
+            end = start + timezone.timedelta(minutes=30)
+            cleaned_data['end'] = end
+
+        return cleaned_data

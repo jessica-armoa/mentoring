@@ -26,7 +26,6 @@ def login(request):
 
         # Busca el usuario por su correo electrónico
         user = User.objects.filter(email=email).first()
-
         print(user.check_password(password))
 
 
