@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 
 # Models
 from app.models import Area
-
+from app.models import Meeting
 
 class CustomUserCreationForm(UserCreationForm):
     """
@@ -110,5 +110,4 @@ class CustomMentorCreationForm(forms.ModelForm):
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError(message="El correo ya existe, intente con otro")
         return self.cleaned_data["email"]
-
 
