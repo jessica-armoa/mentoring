@@ -45,8 +45,7 @@ class Area(models.Model):
 
 
 class Meeting(models.Model):
-    start = models.DateTimeField()
-    end = models.DateTimeField()
+    start = models.ForeignKey('Availability', on_delete=models.CASCADE, null=True)
     description = models.TextField()
     link = models.URLField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='meetings', null=True)
