@@ -21,6 +21,8 @@ class Mentor(models.Model):
         verbose_name_plural = "Mentors"
 
 
+from django.db import models
+
 class Availability(models.Model):
     mentor = models.ForeignKey('Mentor', on_delete=models.CASCADE)
     hour = models.DateTimeField()
@@ -32,6 +34,7 @@ class Availability(models.Model):
     class Meta:
         verbose_name = "Availability"
         verbose_name_plural = "Availabilities"
+
 
 class Area(models.Model):
     name = models.CharField(max_length=255)

@@ -16,6 +16,7 @@ from app.models import Availability
 
 
 
+
 class CustomUserCreationForm(UserCreationForm):
     """
     El modelo de formulario de creación de usuario personalizado.
@@ -146,3 +147,4 @@ class CustomMeetingForm(forms.ModelForm):
             cleaned_data['end'] = end
 
         return cleaned_data
+

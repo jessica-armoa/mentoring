@@ -3,97 +3,152 @@
 {% block title %}Calendar{% endblock %}
 
 {% block style %}
-  {% load static %}
-  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css">
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+
 {% endblock %}
 
 {% block content %}
 <div class="d-flex" style="width: 100vw; height: 100vh;">
-  <div class="sidebar d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary mt-3" style="width: 280px; height:95vh">
-    <a href="/dashboard" class="d-flex align-items-center mb-3 ms-md-0 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-      <h3 class="title">Mentoring.dev</h3>
-    </a>
-    <hr>
-    <ul class="nav nav-pills flex-column mb-auto">
-      <li class="nav-item">
-        <a href="/dashboard" class="nav-link link-body-emphasis" aria-current="page">
-          <i class="fa-solid fa-house"></i>
-          Inicio
+    <div class="sidebar d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary mt-3" style="width: 280px; height:95vh">
+        <a href="/dashboard"
+            class="d-flex align-items-center mb-3 ms-md-0 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+            <h3 class="title">Mentoring.dev</h3>
         </a>
-      </li>
-      <li>
-        <a href="/calendar" class="nav-link active">
-          <i class="fa-solid fa-calendar"></i>
-          Calendario
-        </a>
-      </li>
-    </ul>
-    <hr>
-    <div class="dropdown">
-      <a href="#" class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-        <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
-        <strong>{{ initials }}</strong>
-      </a>
-      <ul class="dropdown-menu text-small shadow">
-        <li><a class="dropdown-item" href="edit/user/{{user_id}}">Editar perfil</a></li>
-        <li><a class="dropdown-item text-danger" id="show_del_modal" data-bs-toggle="modal" data-bs-target="#del_user_modal" href="#">Eliminar cuenta</a></li>
-        <li><hr class="dropdown-divider"></li>
-        <li><a class="dropdown-item" href="logout">Cerrar sesion</a></li>
-      </ul>
+        <hr>
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item">
+                <a href="/dashboard" class="nav-link link-body-emphasis" aria-current="page">
+                    <i class="fa-solid fa-house"></i>
+                    Inicio
+                </a>
+            </li>
+            <li>
+                <a href="/calendar" class="nav-link active">
+                    <i class="fa-solid fa-calendar"></i>
+                    Calendario
+                </a>
+            </li>
+        </ul>
+        <hr>
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
+                <strong>{{ initials }}</strong>
+            </a>
+            <ul class="dropdown-menu text-small shadow">
+                <li><a class="dropdown-item" href="edit/user/{{user_id}}">Editar perfil</a></li>
+                <li><a class="dropdown-item text-danger" id="show_del_modal" data-bs-toggle="modal"
+                        data-bs-target="#del_user_modal" href="#">Eliminar cuenta</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="logout">Cerrar sesion</a></li>
+            </ul>
+        </div>
     </div>
-  </div>
+
+    <div class="dashboard-container">
+        <div id="mentor-calendar"></div>
+
+        <div id="button-container"></div>
+
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content ">
+                <div class="modal-header">
+                    <h4 class="modal-title">Reservar Horario</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        <!-- Agrega tus campos de formulario aquí -->
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" id="nombre" name="nombre">
+                        <!-- Otros campos de formulario -->
+                        <button type="submit">Reservar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="del_user_modal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">¿Estás seguro de que deseas eliminar tu cuenta?</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Si eliminas la cuenta se perderán todos los datos y no será posible recuperarlos.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <a href="delete/user/{{user_id}}" type="button" class="btn btn-primary" id="confirm_del_user">Si, quiero eliminar mi cuenta</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
 
-  <div class="dashboard-container d-flex">
-    <div id="calendar" class="card m-2"></div>
-    <button id="addEventButton">Agregar Evento</button>
-    <p id="selectedDate">Fecha seleccionada: Ninguna</p>
-  </div>
-{% endblock %}
+    {% endblock %}
 
-{% block script %}
+    {% block script %}
     {% load static %}
     <script src="{% static 'js/dashboard.js' %}"></script>
     <script src="{% static 'js/index.global.js' %}"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
+        document.addEventListener('DOMContentLoaded', function () {
+            var mentorAvailableHours = [
+                // Tu código para obtener los horarios disponibles
+                {% for hour in available_hours %}
+            {
+                title: '{{ hour.hour|date:"H:i" }}', // Usar la hora como título
+                start: '{{ hour.hour|date:"Y-m-d H:i" }}',
+                id: '{{ hour.id }}', // Agrega un identificador único
+            },
+            {% endfor %}
+    ];
+
+        var currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
+
+        var calendarEl = document.getElementById('mentor-calendar');
         var calendar = new FullCalendar.Calendar(calendarEl, {
-          height: 600,
-          aspectRatio: 2,
-          //contentHeight: 800,
-          selectable: true,
-          businessHours: true,
-          dayMaxEvents: true,
-          select: function(info) {
-            // Manejar la selección de fecha
-            var selectedDate = info.start;
-            document.getElementById('selectedDate').textContent = 'Fecha seleccionada: ' + selectedDate.toLocaleDateString();
-    
-            // Habilitar el botón "Agregar Evento"
-            document.getElementById('addEventButton').removeAttribute('disabled');
-            document.getElementById('addEventButton').addEventListener('click', function() {
-              // Aquí puedes mostrar un cuadro de diálogo o un formulario para que el usuario ingrese detalles del evento
-              // Luego, puedes crear el evento utilizando AJAX o cualquier método que prefieras y agregarlo al calendario.
-              // Por ejemplo:
-              calendar.addEvent({
-                title: 'Nuevo Evento',
-                start: selectedDate,
-                allDay: true // Si el evento es de todo el día
-              });
-    
-              // Deshabilitar el botón después de agregar el evento
-              document.getElementById('addEventButton').setAttribute('disabled', true);
-            });
-          },
-          eventColor: '#7209B7',
+            initialView: 'dayGridMonth',
+            events: mentorAvailableHours,
+            validRange: {
+                start: currentDate,
+                end: '9999-12-31',
+            },
+            contentHeight: 'auto',
+            contentWidth: 'auto',
+            eventClick: function (info) {
+                // Aquí puedes redirigir a otro lugar cuando se haga clic en el evento
+                // Por ejemplo, puedes usar window.location.href para redirigir a una URL específica
+                $('#myModal').modal('show');
+            },
         });
-    
+
+        // Escucha el evento de redimensionamiento de la ventana para ajustar el tamaño del calendario
+        window.addEventListener('resize', function () {
+            calendar.updateSize();
+        });
+
         calendar.render();
-      });
+});
+
+
     </script>
-    
-    
-{% endblock %}
+
+
+    {% endblock %}
