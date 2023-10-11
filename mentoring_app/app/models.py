@@ -26,7 +26,7 @@ from django.db import models
 class Availability(models.Model):
     mentor = models.ForeignKey('Mentor', on_delete=models.CASCADE)
     hour = models.DateTimeField()
-    is_available = models.BooleanField(default=True) 
+    is_available = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.mentor.user.username} - {self.hour}"

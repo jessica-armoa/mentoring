@@ -1,8 +1,8 @@
 -- Insertar datos de mentores
 INSERT INTO auth_user (username, password, email, first_name, last_name, is_staff, is_active, is_superuser, date_joined)
 VALUES
-  ('jessyarmoa', 'pbkdf2_sha256$260000$TYd0ktCh1f3s$FubJc6r0UDrCqWsl3fG8GgINxqWJmYLR1/7Ks9ZGvN0=', 'jessyarmoa@gmail.com', 'Jessica', 'Armoa', 0, 1, 0, NOW()),
-  ('brxndxz', 'pbkdf2_sha256$260000$TYd0ktCh1f3s$FubJc6r0UDrCqWsl3fG8GgINxqWJmYLR1/7Ks9ZGvN0=', 'brendahuemer@gmail.com', 'Brenda', 'Huemer', 0, 1, 0, NOW());
+  ('jessyarmoa', 'pbkdf2_sha256$600000$zCMqVlm8LJkhimBuHiZdJi$2QIwmaAA6ft13qWgO4HzaP6tTm+PjAxSJerg6toa3+o=', 'jessyarmoa@gmail.com', 'Jessica', 'Armoa', 0, 1, 0, NOW()),
+  ('brxndxz', 'pbkdf2_sha256$600000$da2CqPbUKt3u3bQdZgpsPL$R90n7JHLwS0t9i2b7lGHTvNkMyJ+xXD6u9dN4cj33NM=', 'brendahuemer@gmail.com', 'Brenda', 'Huemer', 0, 1, 0, NOW());
 
 --Obtener id de los users
 SELECT id into @jessy_user_id FROM auth_user WHERE email = 'jessyarmoa@gmail.com';
