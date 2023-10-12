@@ -13,6 +13,7 @@ from app.models import GoogleMeetRoom
 from app.form import CustomUserCreationForm
 from app.form import CustomMentorCreationForm
 from app.form import AvailabilityForm
+from app.form import CustomMeetingCreationForm
 
 from django.http import JsonResponse, HttpResponse
 import requests
@@ -57,8 +58,10 @@ def login(request):
 
         # Busca el usuario por su correo electrónico
         user = User.objects.filter(email=email).first()
-        print(user.check_password(password))
 
+        if user is None:
+            messages.error(request,"No existe una cueta registrada con ese correo electrónico, intente registrarse.")
+            return redirect('login')
 
         if user is not None and user.check_password(password):
             request.session['user_id'] = user.id
@@ -71,8 +74,8 @@ def login(request):
                 request.session['is_mentor'] = True
 
                 print("MENTOR_ID        ", user.id)
-                request.session['mentor_id'] = user.id 
-                
+                request.session['mentor_id'] = user.id
+
                 print("EL USER ES MENTOR")
                 return redirect("/dashboard")
             else:
@@ -215,17 +218,25 @@ def dashboard(request):
         initials = user_in_session.first_name[:1].upper() + user_in_session.last_name[:1].upper()
 
     all_areas = Area.objects.all()
+    print(all_areas)
     all_mentors = Mentor.objects.all()
+    print("22222222222222222222",all_mentors[0].areas.all())
+    is_mentor = request.session['is_mentor']
+    if is_mentor:
+        mentor = Mentor.objects.get(user_id=user_id)
+        salas_ocupadas = GoogleMeetRoom.objects.filter(meeting__mentor=mentor, meeting__start__isnull=False, is_occupied=True).distinct()
+        print("SALAS OCUPADAS: ",salas_ocupadas)
 
     if request.method == "GET":
         context = {
-            'mentors': all_mentors,  # Cambiar a 'mentores' para que coincida con tu plantilla
+            'mentors': all_mentors,
             'all_areas': all_areas,
             'selected_area_id': int(request.GET.get('area_id')) if request.GET.get('area_id') else 0,
             'user_id': user_id,
-            'is_mentor': request.session['is_mentor'],
+            'is_mentor': is_mentor,
             'user_in_session': user_in_session,
             'initials': initials,
+            'salas_ocupadas': salas_ocupadas,
         }
         return render(request, "dashboard.html", context)
 
@@ -248,6 +259,17 @@ def dashboard(request):
         }
 
         return render(request, "dashboard.html", context)
+
+def close_room(request, room_id):
+    room = get_object_or_404(GoogleMeetRoom, pk=room_id)
+
+    # Verifica si la sala está ocupada antes de intentar cerrarla
+    if room.is_occupied:
+        room.is_occupied = False
+        room.save()
+        messages.success(request, "Sala cerrada correctamente")
+    return redirect("/dashboard")
+
 
 def validate_calendly_username(request):
     username = request.GET.get('username')
@@ -335,14 +357,14 @@ def calendar(request):
         return redirect('login')
 
     user_in_session = None
-    saved_hours = None  
+    saved_hours = None
 
     if 'user_id' in request.session:
         user_id = request.session['user_id']
         user_in_session = User.objects.filter(id=user_id).first()
         print("Usuario en sesion: ",user_in_session)
 
-    
+
     if 'selected_date' in request.GET:
         selected_date = request.GET.get('selected_date')
         mentor_id = request.session.get('mentor_id')
@@ -359,9 +381,9 @@ def calendar(request):
             'user_id': user_id,
             'user_in_session': user_in_session,
             'initials': initials,
-            'saved_hours': saved_hours  
+            'saved_hours': saved_hours
         }
-    
+
         return render(request, "calendar.html", context)
 
     if request.method == 'POST':
@@ -385,15 +407,15 @@ from django.urls import reverse
 def delete_hour(request, hour_id):
     selected_date = request.GET.get('selected_date', None)
     print("Selected", selected_date)
-    
+
     horario = Availability.objects.get(pk=hour_id)
 
     horario.delete()
 
-    calendar_url = reverse('calendar') 
+    calendar_url = reverse('calendar')
     if selected_date:
         calendar_url += f'?selected_date={selected_date}'
-    
+
     return redirect(calendar_url)
 
 def user_calendar(request, mentor_id):
@@ -418,7 +440,8 @@ def user_calendar(request, mentor_id):
             'user_in_session': user_in_session,
             'initials': initials,
             'mentor': mentor,
-            'available_hours': available_hours
+            'available_hours': available_hours,
+            'is_mentor': request.session['is_mentor'],
         }
 
         return render(request, 'calendar_user.html', context)

@@ -21,8 +21,6 @@ class Mentor(models.Model):
         verbose_name_plural = "Mentors"
 
 
-from django.db import models
-
 class Availability(models.Model):
     mentor = models.ForeignKey('Mentor', on_delete=models.CASCADE)
     hour = models.DateTimeField()

@@ -57,8 +57,25 @@
         {% load static %}
         <img src="{% static 'img/phone.svg' %}" alt="SVG" class="custom-svg">
       </div>
-      <div class="frase">
-        <p>Explora un espacio dedicado a la <span class="mentoria-gratuita">mentoría gratuita</span>, con profesionales dispuestos a guiar tu camino en el mundo IT. Conecta con mentores expertos en diversas áreas de la informática.</p>
+      <div class="d-flex flex-column">
+        <div class="frase me-4">
+          <p>Explora un espacio dedicado a la <span class="mentoria-gratuita">mentoría gratuita</span>, con profesionales dispuestos a guiar tu camino en el mundo IT. Conecta con mentores expertos en diversas áreas de la informática.</p>
+        </div>
+        {% if salas_ocupadas %}
+        <div class="card cerrar-sala m-3">
+          <div class="card-body">
+            <h5 class="card-title">Tienes salas en uso:</h5>
+          </div>
+          <ul class="list-group list-group-flush">
+          {% for sala in salas_ocupadas %}
+            <li class="list-group-item d-flex align-items-center">
+              <p class="m-0">Nombre de la sala: <strong>{{sala.room_name}}</strong></p>
+              <a href="/cerrar-sala/{{sala.id}}" class="btn btn-secondary ms-3">Cerrar sala</a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
       </div>
     </div>
     <div class="row justify-content-center align-items-center ms-1">

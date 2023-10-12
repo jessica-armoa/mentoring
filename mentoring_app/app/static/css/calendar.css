@@ -1,13 +1,34 @@
 #calendar {
     margin: 5px;
-    width: 50vw;
+    width: 60vw;
     height: 95vh;
     padding: 5px;
 }
 #selected-date {
-    width: 40vw; /* Ajusta el valor según tus necesidades */
+    width: 30vw;
     height: 95vh;
     margin: 0 auto;
     text-align: center;
-    /* Otros estilos */
+}
+
+.fc-daygrid-day-number,
+.fc-col-header-cell-cushion {
+    color: #000;
+    text-decoration: none;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    border-radius: 7px;
+    box-shadow: 3px 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-container {
+    margin-left: 290px;
+    width: calc(100vw - 290px);
+    /* Adjust the width based on your layout */
+    height: 100vh;
 }

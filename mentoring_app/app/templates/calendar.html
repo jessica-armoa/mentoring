@@ -4,7 +4,6 @@
 
 {% block style %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
 <link rel="stylesheet" href="{% static 'css/calendar.css' %}" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css">
 {% endblock %}
@@ -57,7 +56,7 @@
     </div>
 
     <!-- Div para mostrar la fecha seleccionada -->
-    <div id="selected-date" class="card m-2 mt-3 border p-2 shadow"
+    <div id="selected-date" class="card m-2 mt-3 border p-3 shadow"
       style="height:95vh; margin: 0 auto; text-align: center;">
       <div class="container d-flex justify-content-evenly mt-3">
         <h6>Fecha seleccionada:</h6>
@@ -68,11 +67,11 @@
         {% csrf_token %}
         <div class="row d-flex align-items-end justify-content-evenly">
           <input type="hidden" name="selected_date" id="selected-date-field">
-          <div class="col-4">
+          <div class="col-6">
             <label for="hour_start">De:</label>
             <input type="time" name="hour_start" class="form-control mt-2">
           </div>
-          <div class="col-4">
+          <div class="col-6">
             <label for="hour_end">Hasta:</label>
             <input type="time" name="hour_end" class="form-control mt-2">
           </div>
@@ -117,7 +116,7 @@
       validRange: {
         start: new Date().toISOString().slice(0, 10), // Fecha actual
       },
-      
+
       select: function (info) {
 
         // Captura la fecha seleccionada en formato ISO
@@ -125,8 +124,12 @@
 
         // Redirige a la página con la fecha seleccionada en la URL
         window.location.href = "/calendar?selected_date=" + selectedDate;
-      }
-      
+      },
+
+      weekNumbersWithinDays: true,
+      fixedWeekCount: false,
+      dayMaxEventRows: true,
+
     });
     calendar.render();
 

@@ -5,6 +5,9 @@ def create_google_meet_rooms(apps, schema_editor):
     rooms_data = [
         {"room_name": "sala1", "room_link": "https://meet.google.com/xke-tibc-qdu", "is_occupied": False},
         {"room_name": "sala2", "room_link": "https://meet.google.com/khi-razy-rgq", "is_occupied": False},
+        {"room_name": "sala3", "room_link": "https://meet.google.com/xqv-rsfc-dvy", "is_occupied": False},
+        {"room_name": "sala4", "room_link": "https://meet.google.com/aww-xati-ujv", "is_occupied": False},
+        {"room_name": "sala5", "room_link": "https://meet.google.com/wav-yncj-mhk", "is_occupied": False},
     ]
     rooms = [GoogleMeetRoom(**data) for data in rooms_data]
     GoogleMeetRoom.objects.bulk_create(rooms)

@@ -17,4 +17,5 @@ urlpatterns = [
     path('delete/user/<int:id>', views.delete_user),
     path('user/<int:mentor_id>/calendar/', views.user_calendar, name='user_calendar'),
     path('delete_hour/<int:hour_id>/', views.delete_hour, name='delete_hour'),
+    path('cerrar-sala/<int:room_id>', views.close_room)
 ]

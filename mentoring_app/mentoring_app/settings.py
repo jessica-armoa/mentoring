@@ -142,4 +142,4 @@ EMAIL_HOST_USER = 'mentoring.dev.py@gmail.com'  # Tu dirección de correo
 EMAIL_HOST_PASSWORD = 'hipr eoxq hffu rdvz'  # Tu contraseña (o una contraseña de aplicación si estás usando Gmail)
 DEFAULT_FROM_EMAIL = "mentoring.dev.py@gmail.com"  # La dirección que aparecerá como "From"
 
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [BASE_DIR / "app" / "static"]
