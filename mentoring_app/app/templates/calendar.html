@@ -3,15 +3,19 @@
 {% block title %}Calendar{% endblock %}
 
 {% block style %}
-  {% load static %}
-  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css">
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+<link rel="stylesheet" href="{% static 'css/calendar.css' %}" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css">
 {% endblock %}
 
 {% block content %}
+
+
 <div class="d-flex" style="width: 100vw; height: 100vh;">
   <div class="sidebar d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary mt-3" style="width: 280px; height:95vh">
-    <a href="/dashboard" class="d-flex align-items-center mb-3 ms-md-0 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+    <a href="/dashboard"
+      class="d-flex align-items-center mb-3 ms-md-0 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
       <h3 class="title">Mentoring.dev</h3>
     </a>
     <hr>
@@ -31,46 +35,121 @@
     </ul>
     <hr>
     <div class="dropdown">
-      <a href="#" class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+      <a href="#" class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle"
+        data-bs-toggle="dropdown" aria-expanded="false">
         <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
         <strong>{{ initials }}</strong>
       </a>
       <ul class="dropdown-menu text-small shadow">
         <li><a class="dropdown-item" href="edit/user/{{user_id}}">Editar perfil</a></li>
-        <li><a class="dropdown-item text-danger" id="show_del_modal" data-bs-toggle="modal" data-bs-target="#del_user_modal" href="#">Eliminar cuenta</a></li>
-        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item text-danger" id="show_del_modal" data-bs-toggle="modal"
+            data-bs-target="#del_user_modal" href="#">Eliminar cuenta</a></li>
+        <li>
+          <hr class="dropdown-divider">
+        </li>
         <li><a class="dropdown-item" href="logout">Cerrar sesion</a></li>
       </ul>
     </div>
   </div>
+  <div class="d-flex" style="width: 100vw;">
+    <div class="dashboard-container">
+      <div id="calendar" class="card m-2 ms-2 mt-3"></div>
+    </div>
 
-
-  <div class="dashboard-container d-flex">
-    <div id="calendar" class="card m-2"></div>
+    <!-- Div para mostrar la fecha seleccionada -->
+    <div id="selected-date" class="card m-2 mt-3 border p-2 shadow"
+      style="height:95vh; margin: 0 auto; text-align: center;">
+      <div class="container d-flex justify-content-evenly mt-3">
+        <h6>Fecha seleccionada:</h6>
+        <div id="selected-date-display"></div>
+      </div>
+      <p class="mt-3">Elija su rango de horario disponible:</p>
+      <form method="post" action="/calendar">
+        {% csrf_token %}
+        <div class="row d-flex align-items-end justify-content-evenly">
+          <input type="hidden" name="selected_date" id="selected-date-field">
+          <div class="col-4">
+            <label for="hour_start">De:</label>
+            <input type="time" name="hour_start" class="form-control mt-2">
+          </div>
+          <div class="col-4">
+            <label for="hour_end">Hasta:</label>
+            <input type="time" name="hour_end" class="form-control mt-2">
+          </div>
+          <div class="ms-5 col-2">
+            <button type="submit" class="btn btn-primary float-end mt-3">Guardar</button>
+          </div>
+        </div>
+      </form>
+      <div id="horarios-guardados" class="mt-4 ms-3 ">
+        <h6>Horarios Guardados:</h6>
+        <div id="saved-hours" style="display: none;"></div>
+        <ul class="list-unstyled">
+          {% for hour in saved_hours %}
+          <li>{{ hour.hour }} <a class="eliminar-horario"
+              href="{% url 'delete_hour' hour.id %}?selected_date={{ selected_date }}"><i
+                class="fas fa-trash"></i></i></a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
   </div>
+</div>
 {% endblock %}
 
 {% block script %}
-    {% load static %}
-    <script src="{% static 'js/dashboard.js' %}"></script>
-    <script src="{% static 'js/index.global.js' %}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-          selectable: true,
-          businessHours: true,
-          dayMaxEvents: true,
-          events: [
-            {
-              title: 'All Day Event',
-              start: '2023-10-10'
-            },
-          ],
-          eventColor: '#7209B7',
-        });
-        calendar.render();
-      });
-    </script>
+{% load static %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+<script src="{% static 'js/calendar.js'%}"></script>
+<script src="{% static 'js/index.global.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      selectable: true,
+      businessHours: true,
+      dayMaxEvents: true,
+      eventColor: '#7209B7',
+      contentHeight: 'auto',
+      contentWidth: 'auto',
+      validRange: {
+        start: new Date().toISOString().slice(0, 10), // Fecha actual
+      },
+      
+      select: function (info) {
+
+        // Captura la fecha seleccionada en formato ISO
+        var selectedDate = info.start.toISOString().slice(0, 10);
+
+        // Redirige a la página con la fecha seleccionada en la URL
+        window.location.href = "/calendar?selected_date=" + selectedDate;
+      }
+      
+    });
+    calendar.render();
+
+    // Obtén el valor del parámetro 'selected_date' desde la URL
+    let params = new URLSearchParams(window.location.search);
+    let valor = params.get('selected_date');
+
+    // Actualiza el campo de entrada y el "selected date display"
+    var selectedDateField = document.getElementById('selected-date-field');
+    var selectedDateDisplay = document.getElementById('selected-date-display');
+
+    if (valor) {
+      selectedDateField.value = valor;
+      selectedDateDisplay.textContent = valor;
+    } else {
+      selectedDateField.value = "No se ha seleccionado una fecha.";
+      selectedDateDisplay.textContent = "No se ha seleccionado una fecha.";
+    }
+    // Escuchar el evento de redimensionamiento de la ventana para ajustar el tamaño del calendario
+    window.addEventListener('resize', function () {
+      calendar.updateSize();
+    });
+  });
+
+</script>
 {% endblock %}
