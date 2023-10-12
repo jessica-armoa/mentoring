@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mentoring.dev</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .mentor-info {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mentoría gratuita para {{ user.first_name }} {{ user.last_name }}</h1>
+    <div class="mentor-info">
+        <p><strong>Estos son los datos de tu mentoría gratuita:</strong></p>
+        <p>Fecha: {{ horario.hour|date:"Y-m-d" }}</p>
+        <p>Horario: {{ horario.hour|date:"H:i" }}</p>
+        <p>El mentor es: {{ mentor.user.first_name }} {{ mentor.user.last_name }}</p>
+        <p>Link de Google Meet: <a href="{{reunion.room.room_link}}">meet.google.com/mentoring-dev/{{reunion.room.room_name}}</a></p>
+        <p>Descripción: {{reunion.description}}</p>
+    </div>
+</body>
+</html>
+

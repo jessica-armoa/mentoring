@@ -50,7 +50,7 @@ class Area(models.Model):
 class Meeting(models.Model):
     start = models.ForeignKey('Availability', on_delete=models.CASCADE, null=True)
     description = models.TextField()
-    link = models.URLField()
+    room = models.ForeignKey('GoogleMeetRoom', on_delete=models.CASCADE, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='meetings', null=True)
     mentor = models.ForeignKey(Mentor, on_delete=models.CASCADE, related_name='mentored_meetings')
     created_at = models.DateTimeField(auto_now_add=True, null=True)
@@ -63,3 +63,15 @@ class Meeting(models.Model):
     class Meta:
         verbose_name = "Meeting"
         verbose_name_plural = "Meetings"
+
+class GoogleMeetRoom(models.Model):
+    room_name = models.CharField(max_length=100)
+    room_link = models.URLField()
+    is_occupied = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.room_name} - {self.room_link}"
+
+    class Meta:
+        verbose_name = "GoogleMeetRoom"
+        verbose_name_plural = "GoogleMeetRooms"

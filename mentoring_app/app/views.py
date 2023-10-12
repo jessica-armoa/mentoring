@@ -6,14 +6,41 @@ from app.models import Availability, Meeting
 
 from app.models import Area
 from app.models import Mentor
+from app.models import GoogleMeetRoom
 
 from app.form import CustomUserCreationForm
 from app.form import CustomMentorCreationForm
+from app.form import CustomMeetingCreationForm
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 import requests
+from urllib.parse import urlencode
 
 from django.contrib import messages
+
+#Para el envio de correo
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+import os
+#from google import Create_Service
+
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
+
+from datetime import datetime, timedelta
+import uuid
+
+
+from zoomus import ZoomClient
+import jwt
+import time
 
 def index(request):
     return redirect('login')
@@ -190,6 +217,7 @@ def dashboard(request):
             'all_areas': all_areas,
             'selected_area_id': int(request.GET.get('area_id')) if request.GET.get('area_id') else 0,
             'user_id': user_id,
+            'is_mentor': request.session['is_mentor'],
             'user_in_session': user_in_session,
             'initials': initials,
         }
@@ -303,6 +331,7 @@ def calendar(request):
     if 'user_id' in request.session:
         user_id = request.session['user_id']
         user_in_session = User.objects.filter(id=user_id).first()
+        print("Usuario en sesion: ",user_in_session)
 
     initials = None
     if user_in_session is not None:
@@ -318,7 +347,98 @@ def calendar(request):
 
 
 def user_calendar(request, mentor_id):
+
+    user_in_session = None
+
+    if 'user_id' in request.session:
+        user_id = request.session['user_id']
+        user_in_session = User.objects.filter(id=user_id).first()
+        print("Usuario en sesion: ",user_in_session)
+
+    initials = None
+    if user_in_session is not None:
+        initials = user_in_session.first_name[:1].upper() + user_in_session.last_name[:1].upper()
+
     mentor = Mentor.objects.get(pk=mentor_id)
     available_hours = Availability.objects.filter(mentor=mentor)
-    
-    return render(request, 'calendar_user.html', {'mentor': mentor, 'available_hours': available_hours})
+
+    if request.method == "GET":
+        context = {
+            'user_id': user_id,
+            'user_in_session': user_in_session,
+            'initials': initials,
+            'mentor': mentor,
+            'available_hours': available_hours
+        }
+
+        return render(request, 'calendar_user.html', context)
+
+    if request.method == "POST":
+        print(request.POST)
+        form = CustomMeetingCreationForm(request.POST)
+        print(form.is_valid())
+        if form.is_valid():
+            # Obtener el horario disponible seleccionado
+            cleaned_data = form.clean()
+            availability_id = cleaned_data.get('availability_id')
+            description = cleaned_data.get('description')
+
+            start = Availability.objects.get(id=availability_id)
+            print(start)
+
+            # Obtener una sala aleatoria no ocupada
+            sala_disponible = GoogleMeetRoom.objects.filter(is_occupied=False).order_by('?').first()
+
+            if sala_disponible:
+                meeting = form.save(commit=False)
+                meeting.room = sala_disponible
+                meeting.description = description
+                meeting.start = start
+                meeting.user = user_in_session
+                meeting.mentor = mentor
+
+                correos = [user_in_session.email, mentor.user.email]
+                print(".................",correos)
+
+                meeting.save()
+                print(meeting)
+                start.is_available = False
+                start.save()
+                # Marcar la sala como ocupada
+                sala_disponible.is_occupied = True
+                sala_disponible.save()
+
+                # Envía el correo después de guardar la mentoría
+                asunto = "Mentoría gratuíta con Mentoring.dev"
+                plantilla = "correo.html"
+                contexto = {
+                    'user': user_in_session,
+                    'mentor': mentor,
+                    'reunion': meeting,
+                    'horario': start
+                }
+                mensaje = render_to_string(plantilla, contexto)
+                enviar_correo(asunto, mensaje, mentor, user_in_session)
+
+                messages.success(request, 'Revisa tu correo, te hemos mandado la información de la reunión')
+                #190930802259-cuv3k92k38th8pqhebjhbug426vnths0.apps.googleusercontent.com
+            else:
+                messages.error(request, 'Lo sentimos, no tenemos salas disponibles, intente de nuevo más tarde')
+
+            return redirect("/user/"+str(mentor_id)+"/calendar/")
+
+def enviar_correo(asunto, mensaje, mentor, usuario):
+    # Obtener las direcciones de correo del mentor y el usuario
+    correo_mentor = mentor.user.email
+    correo_usuario = usuario.email
+
+    # Enviar correo
+    send_mail(
+        asunto,
+        "",
+        settings.EMAIL_HOST_USER,
+        [correo_mentor, correo_usuario],
+        html_message=mensaje,
+        fail_silently=False,
+    )
+
