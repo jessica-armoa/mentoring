@@ -305,13 +305,20 @@ from django.utils import timezone
 
 def calendar(request):
     if 'user_id' not in request.session:
-            return redirect('login')
+        return redirect('login')
 
     user_in_session = None
+    saved_hours = None  
 
     if 'user_id' in request.session:
         user_id = request.session['user_id']
         user_in_session = User.objects.filter(id=user_id).first()
+    
+    if 'selected_date' in request.GET:
+        selected_date = request.GET.get('selected_date')
+        mentor_id = request.session.get('mentor_id')
+        saved_hours = Availability.objects.filter(hour__date=selected_date, mentor_id=mentor_id)
+        print("SAVED HOURS", saved_hours)
 
     initials = None
     if user_in_session is not None:
@@ -322,8 +329,11 @@ def calendar(request):
             'user_id': user_id,
             'user_in_session': user_in_session,
             'initials': initials,
+            'saved_hours': saved_hours  
         }
+    
         return render(request, "calendar.html", context)
+
     if request.method == 'POST':
         form = AvailabilityForm(request.POST)
         if form.is_valid():
@@ -338,12 +348,23 @@ def calendar(request):
                 return redirect('/calendar')
     else:
         form = AvailabilityForm()
+
+    return render(request, 'calendar.html', {'form': form})
+from django.urls import reverse
+
+def delete_hour(request, hour_id):
+    selected_date = request.GET.get('selected_date', None)
+    print("Selected", selected_date)
     
-    selected_date = request.GET.get('selected_date')
-    schedules = Availability.objects.filter(date=selected_date)
-    return render(request, 'calendar.html', {'form': form}, {'schedules': schedules})
+    horario = Availability.objects.get(pk=hour_id)
 
+    horario.delete()
 
+    calendar_url = reverse('calendar') 
+    if selected_date:
+        calendar_url += f'?selected_date={selected_date}'
+    
+    return redirect(calendar_url)
 
 def user_calendar(request, mentor_id):
     mentor = Mentor.objects.get(pk=mentor_id)

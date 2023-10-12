@@ -1,0 +1,13 @@
+#calendar {
+    margin: 5px;
+    width: 50vw;
+    height: 95vh;
+    padding: 5px;
+}
+#selected-date {
+    width: 40vw; /* Ajusta el valor según tus necesidades */
+    height: 95vh;
+    margin: 0 auto;
+    text-align: center;
+    /* Otros estilos */
+}
