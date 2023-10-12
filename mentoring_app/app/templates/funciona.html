@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Calendar{% endblock %}
+
+{% block style %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+
+{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="width: 100vw; height: 100vh;">
+    <div class="sidebar d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary mt-3" style="width: 280px; height:95vh">
+        <a href="/dashboard"
+            class="d-flex align-items-center mb-3 ms-md-0 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+            <h3 class="title">Mentoring.dev</h3>
+        </a>
+        <hr>
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item">
+                <a href="/dashboard" class="nav-link link-body-emphasis" aria-current="page">
+                    <i class="fa-solid fa-house"></i>
+                    Inicio
+                </a>
+            </li>
+            <li>
+                <a href="/calendar" class="nav-link active">
+                    <i class="fa-solid fa-calendar"></i>
+                    Calendario
+                </a>
+            </li>
+        </ul>
+        <hr>
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
+                <strong>{{ initials }}</strong>
+            </a>
+            <ul class="dropdown-menu text-small shadow">
+                <li><a class="dropdown-item" href="edit/user/{{user_id}}">Editar perfil</a></li>
+                <li><a class="dropdown-item text-danger" id="show_del_modal" data-bs-toggle="modal"
+                        data-bs-target="#del_user_modal" href="#">Eliminar cuenta</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="logout">Cerrar sesion</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div id="mentor-calendar"></div>
+
+        <div id="button-container"></div>
+
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content ">
+                <div class="modal-header">
+                    <h4 class="modal-title">Reservar Horario</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        <!-- Agrega tus campos de formulario aquí -->
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" id="nombre" name="nombre">
+                        <!-- Otros campos de formulario -->
+                        <button type="submit">Reservar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="del_user_modal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">¿Estás seguro de que deseas eliminar tu cuenta?</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Si eliminas la cuenta se perderán todos los datos y no será posible recuperarlos.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <a href="delete/user/{{user_id}}" type="button" class="btn btn-primary" id="confirm_del_user">Si, quiero eliminar mi cuenta</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    {% endblock %}
+
+    {% block script %}
+    {% load static %}
+    <script src="{% static 'js/dashboard.js' %}"></script>
+    <script src="{% static 'js/index.global.js' %}"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var mentorAvailableHours = [
+                // Tu código para obtener los horarios disponibles
+                {% for hour in available_hours %}
+            {
+                title: '{{ hour.hour|date:"H:i" }}', // Usar la hora como título
+                start: '{{ hour.hour|date:"Y-m-d H:i" }}',
+                id: '{{ hour.id }}', // Agrega un identificador único
+            },
+            {% endfor %}
+    ];
+
+        var currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
+
+        var calendarEl = document.getElementById('mentor-calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: mentorAvailableHours,
+            validRange: {
+                start: currentDate,
+                end: '9999-12-31',
+            },
+            contentHeight: 'auto',
+            contentWidth: 'auto',
+            eventClick: function (info) {
+                // Aquí puedes redirigir a otro lugar cuando se haga clic en el evento
+                // Por ejemplo, puedes usar window.location.href para redirigir a una URL específica
+                $('#myModal').modal('show');
+            },
+        });
+
+        // Escucha el evento de redimensionamiento de la ventana para ajustar el tamaño del calendario
+        window.addEventListener('resize', function () {
+            calendar.updateSize();
+        });
+
+        calendar.render();
+});
+
+
+    </script>
+
+
+    {% endblock %}
+
+
+
+    def calendar(request):
+    if 'user_id' not in request.session:
+            return redirect('login')
+
+    user_in_session = None
+
+    if 'user_id' in request.session:
+        user_id = request.session['user_id']
+        user_in_session = User.objects.filter(id=user_id).first()
+
+    initials = None
+    if user_in_session is not None:
+        initials = user_in_session.first_name[:1].upper() + user_in_session.last_name[:1].upper()
+
+    if request.method == "GET":
+        context = {
+            'user_id': user_id,
+            'user_in_session': user_in_session,
+            'initials': initials,
+        }
+        return render(request, "calendar.html", context)
+    if request.method == 'POST':
+        form = AvailabilityForm(request.POST)
+        if form.is_valid():
+            datetime_value = form.cleaned_data  # Obtiene la fecha y hora combinadas
+            mentor_id = request.session.get('mentor_id')
+            print("MENTOR_ID", mentor_id)
+            if mentor_id is not None:
+                availability = Availability(hour=datetime_value, mentor_id=mentor_id)
+                print("AVAILABILITY", availability)
+                availability.save()
+                return redirect('/calendar')
+    else:
+        form = AvailabilityForm()
+
+
+    return render(request, 'calendar.html', {'form': form})
+
+    class AvailabilityForm(forms.Form):
+    selected_date = forms.DateField()
+    selected_hour = forms.TimeField()  
+
+    def clean(self):
+        cleaned_data = super().clean()
+        selected_date = cleaned_data.get('selected_date')
+        selected_hour = cleaned_data.get('selected_hour')
+        
+        if selected_date and selected_hour:
+            # Combina la fecha y la hora para crear un objeto datetime
+            datetime_value = datetime.combine(selected_date, selected_hour)
+            if datetime_value < datetime.now():
+                raise forms.ValidationError("La fecha y hora deben ser en el presente o en el futuro.")
+            return datetime_value
+
+        raise forms.ValidationError("Ambos campos de fecha y hora son requeridos.")

@@ -4,11 +4,14 @@ from django.shortcuts import render, redirect
 
 from app.models import Availability, Meeting
 
+from datetime import datetime
+
 from app.models import Area
 from app.models import Mentor
 
 from app.form import CustomUserCreationForm
 from app.form import CustomMentorCreationForm
+from app.form import AvailabilityForm
 
 from django.http import JsonResponse
 import requests
@@ -40,6 +43,10 @@ def login(request):
 
             if user.id in all_user_id_mentors:
                 request.session['is_mentor'] = True
+
+                print("MENTOR_ID        ", user.id)
+                request.session['mentor_id'] = user.id 
+                
                 print("EL USER ES MENTOR")
                 return redirect("/dashboard")
             else:
@@ -293,6 +300,8 @@ def edit_mentor(request, id):
         # Redireccionar o hacer lo que necesites después de la actualización
         return redirect('/dashboard')
 
+from datetime import datetime
+from django.utils import timezone
 
 def calendar(request):
     if 'user_id' not in request.session:
@@ -315,6 +324,25 @@ def calendar(request):
             'initials': initials,
         }
         return render(request, "calendar.html", context)
+    if request.method == 'POST':
+        form = AvailabilityForm(request.POST)
+        if form.is_valid():
+            datetime_values = form.cleaned_data
+            mentor_id = request.session.get('mentor_id')
+            print("MENTOR_ID", mentor_id)
+            if mentor_id is not None:
+                for datetime_value in datetime_values:
+                    availability = Availability(hour=datetime_value, mentor_id=mentor_id)
+                    print("AVAILABILITY", availability)
+                    availability.save()
+                return redirect('/calendar')
+    else:
+        form = AvailabilityForm()
+    
+    selected_date = request.GET.get('selected_date')
+    schedules = Availability.objects.filter(date=selected_date)
+    return render(request, 'calendar.html', {'form': form}, {'schedules': schedules})
+
 
 
 def user_calendar(request, mentor_id):
