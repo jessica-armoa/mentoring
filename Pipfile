@@ -7,6 +7,10 @@ name = "pypi"
 django = "*"
 pymysql = "*"
 requests = "*"
+google-api-python-client = "*"
+google-auth-oauthlib = "*"
+zoomus = "*"
+pyjwt = "*"
 
 [dev-packages]
 faker = "*"

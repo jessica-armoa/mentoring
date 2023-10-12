@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -85,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'db_mentoring',
         'USER': 'root',
-        'PASSWORD': '',
+        'PASSWORD': 'root',
         'HOST': '127.0.0.1',
         'PORT': '3306', #Puerto para mysql
     }
@@ -131,3 +132,14 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587  # Puerto del servidor SMTP (587 para TLS)
+EMAIL_USE_TLS = True  # Usar TLS (True para Gmail)
+EMAIL_HOST_USER = 'mentoring.dev.py@gmail.com'  # Tu dirección de correo
+EMAIL_HOST_PASSWORD = 'hipr eoxq hffu rdvz'  # Tu contraseña (o una contraseña de aplicación si estás usando Gmail)
+DEFAULT_FROM_EMAIL = "mentoring.dev.py@gmail.com"  # La dirección que aparecerá como "From"
+
+STATICFILES_DIRS = [BASE_DIR / "static"]

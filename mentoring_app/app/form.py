@@ -148,19 +148,18 @@ class AvailabilityForm(forms.Form):
             raise forms.ValidationError("Ambos campos de fecha y hora son requeridos.")
 
 
-class CustomMeetingForm(forms.ModelForm):
+class CustomMeetingCreationForm(forms.ModelForm):
+    availability_id = forms.IntegerField()
+    description = forms.CharField(max_length=500, required=True)
+
     class Meta:
         model = Meeting
-        fields = ['start', 'description', 'link']
+        fields = ['availability_id', 'description']
 
-    def clean(self):
-        cleaned_data = super().clean()
-        start = cleaned_data.get('start')
+    def save(self, commit=True):
+        meeting = super().save(commit=False)
 
-        if start:
-            # Calcula el end como media hora después del start
-            end = start + timezone.timedelta(minutes=30)
-            cleaned_data['end'] = end
-
-        return cleaned_data
+        if commit:
+            meeting.save()
+        return meeting
 
