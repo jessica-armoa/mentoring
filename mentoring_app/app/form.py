@@ -6,15 +6,13 @@ from django.contrib.auth.forms import UserCreationForm
 from django.utils import timezone
 
 # Otros
-from datetime import datetime
+from datetime import datetime, timedelta, time
 
 # Models
 from django.contrib.auth.models import User
 from app.models import Area
 from app.models import Meeting
 from app.models import Availability
-
-
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -119,18 +117,36 @@ class CustomMentorCreationForm(forms.ModelForm):
             raise forms.ValidationError(message="El correo ya existe, intente con otro")
         return self.cleaned_data["email"]
 
-class AvailabilityForm(forms.ModelForm):
-    class Meta:
-        model = Availability
-        fields = ['hour']
 
-    def clean_hour(self):
-        hour = self.cleaned_data.get('hour')
+class AvailabilityForm(forms.Form):
+    selected_date = forms.DateField()
+    hour_start = forms.TimeField()  
+    hour_end = forms.TimeField()  
+    def clean(self):
+            cleaned_data = super().clean()
+            selected_date = cleaned_data.get('selected_date')
+            hour_start = cleaned_data.get('hour_start')
+            hour_end = cleaned_data.get('hour_end')
+            
+            if selected_date and hour_start and hour_end:
+                # Calcula el end como media hora después del start
+                end = time(hour_end.hour, (hour_end.minute // 30) * 30)  # Redondea a la media hora
+                start = time(hour_start.hour, (hour_start.minute // 30) * 30)  # Redondea a la media hora
+                
+                # Crea una lista de horarios de 30 minutos entre start y end
+                times = []
+                current_time = start
+                while current_time < end:
+                    times.append(current_time)
+                    current_time = (datetime.combine(datetime.min, current_time) + timedelta(minutes=30)).time()
+                
+                # Combina la fecha y la hora para crear objetos datetime
+                datetime_values = [datetime.combine(selected_date, t) for t in times]
+                
+                return datetime_values
 
-        if hour < datetime.now():
-            raise forms.ValidationError("La fecha y hora deben ser en el presente o en el futuro.")
+            raise forms.ValidationError("Ambos campos de fecha y hora son requeridos.")
 
-        return hour
 
 class CustomMeetingForm(forms.ModelForm):
     class Meta:

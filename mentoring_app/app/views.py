@@ -4,11 +4,14 @@ from django.shortcuts import render, redirect
 
 from app.models import Availability, Meeting
 
+from datetime import datetime
+
 from app.models import Area
 from app.models import Mentor
 
 from app.form import CustomUserCreationForm
 from app.form import CustomMentorCreationForm
+from app.form import AvailabilityForm
 
 from django.http import JsonResponse
 import requests
@@ -40,6 +43,10 @@ def login(request):
 
             if user.id in all_user_id_mentors:
                 request.session['is_mentor'] = True
+
+                print("MENTOR_ID        ", user.id)
+                request.session['mentor_id'] = user.id 
+                
                 print("EL USER ES MENTOR")
                 return redirect("/dashboard")
             else:
@@ -293,16 +300,25 @@ def edit_mentor(request, id):
         # Redireccionar o hacer lo que necesites después de la actualización
         return redirect('/dashboard')
 
+from datetime import datetime
+from django.utils import timezone
 
 def calendar(request):
     if 'user_id' not in request.session:
-            return redirect('login')
+        return redirect('login')
 
     user_in_session = None
+    saved_hours = None  
 
     if 'user_id' in request.session:
         user_id = request.session['user_id']
         user_in_session = User.objects.filter(id=user_id).first()
+    
+    if 'selected_date' in request.GET:
+        selected_date = request.GET.get('selected_date')
+        mentor_id = request.session.get('mentor_id')
+        saved_hours = Availability.objects.filter(hour__date=selected_date, mentor_id=mentor_id)
+        print("SAVED HOURS", saved_hours)
 
     initials = None
     if user_in_session is not None:
@@ -313,9 +329,42 @@ def calendar(request):
             'user_id': user_id,
             'user_in_session': user_in_session,
             'initials': initials,
+            'saved_hours': saved_hours  
         }
+    
         return render(request, "calendar.html", context)
 
+    if request.method == 'POST':
+        form = AvailabilityForm(request.POST)
+        if form.is_valid():
+            datetime_values = form.cleaned_data
+            mentor_id = request.session.get('mentor_id')
+            print("MENTOR_ID", mentor_id)
+            if mentor_id is not None:
+                for datetime_value in datetime_values:
+                    availability = Availability(hour=datetime_value, mentor_id=mentor_id)
+                    print("AVAILABILITY", availability)
+                    availability.save()
+                return redirect('/calendar')
+    else:
+        form = AvailabilityForm()
+
+    return render(request, 'calendar.html', {'form': form})
+from django.urls import reverse
+
+def delete_hour(request, hour_id):
+    selected_date = request.GET.get('selected_date', None)
+    print("Selected", selected_date)
+    
+    horario = Availability.objects.get(pk=hour_id)
+
+    horario.delete()
+
+    calendar_url = reverse('calendar') 
+    if selected_date:
+        calendar_url += f'?selected_date={selected_date}'
+    
+    return redirect(calendar_url)
 
 def user_calendar(request, mentor_id):
     mentor = Mentor.objects.get(pk=mentor_id)
