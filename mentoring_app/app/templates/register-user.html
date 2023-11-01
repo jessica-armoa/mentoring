@@ -4,6 +4,11 @@
 
 {% block style %}
   {% load static %}
+  <style>
+    .obligatorio{
+      color: red;
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -19,7 +24,7 @@
     <div class="row mt-3">
       <div class="col mb-1">
         <label for="validationTooltipFirstName" class="form-label"
-          >First name</label
+          >First name<span class="obligatorio">*</span></label
         >
         <input
           type="text"
@@ -31,7 +36,7 @@
       </div>
       <div class="col mb-1">
         <label for="validationTooltipLastName" class="form-label"
-          >Last name</label
+          >Last name<span class="obligatorio">*</span></label
         >
         <input
           type="text"
@@ -43,7 +48,8 @@
       </div>
     </div>
     <div class="mb-1 mt-3">
-        <label for="validationTooltipUsername" class="form-label">Username</label>
+        <label for="validationTooltipUsername" class="form-label"
+          >Username<span class="obligatorio">*</span></label>
         <div class="input-group has-validation">
           <input
             type="text"
@@ -54,7 +60,8 @@
         </div>
       </div>
     <div class="mb-1">
-      <label for="validationTooltipEmail" class="form-label">Email</label>
+      <label for="validationTooltipEmail" class="form-label"
+        >Email<span class="obligatorio">*</span></label>
       <div class="input-group has-validation">
         <input
           type="email"
@@ -68,7 +75,8 @@
       </div>
     </div>
     <div class="mb-1">
-      <label for="validationTooltipPassword" class="form-label">Password</label>
+      <label for="validationTooltipPassword" class="form-label"
+        >Password<span class="obligatorio">*</span></label>
       <div class="input-group has-validation">
         <input
           type="password"
@@ -82,7 +90,7 @@
     </div>
     <div class="mb-1">
       <label for="validationTooltipPassword2" class="form-label"
-        >Confirm Password</label
+        >Confirm Password<span class="obligatorio">*</span></label
       >
       <div class="input-group has-validation">
         <input

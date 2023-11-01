@@ -22,12 +22,14 @@
           Inicio
         </a>
       </li>
+      {% if is_mentor %}
       <li>
         <a href="/calendar" class="nav-link link-body-emphasis">
           <i class="fa-solid fa-calendar"></i>
           Calendario
         </a>
       </li>
+      {% endif %}
     </ul>
     <hr>
     <div class="dropdown">
@@ -36,7 +38,11 @@
         <strong>{{ initials }}</strong>
       </a>
       <ul class="dropdown-menu text-small shadow">
-        <li><a class="dropdown-item" href="edit/user/{{user_id}}">Editar perfil</a></li>
+        {% if request.session.is_mentor == True %}
+            <li><a class="dropdown-item" href="edit/mentor/{{user_id}}">Editar perfil</a></li>
+            {% elif request.session.is_mentor == False %}
+            <li><a class="dropdown-item" href="edit/user/{{user_id}}">Editar perfil</a></li>
+            {% endif %}
         <li><a class="dropdown-item text-danger" id="show_del_modal" data-bs-toggle="modal" data-bs-target="#del_user_modal" href="#">Eliminar cuenta</a></li>
         <li><hr class="dropdown-divider"></li>
         <li><a class="dropdown-item" href="logout">Cerrar sesion</a></li>
@@ -51,8 +57,25 @@
         {% load static %}
         <img src="{% static 'img/phone.svg' %}" alt="SVG" class="custom-svg">
       </div>
-      <div class="frase">
-        <p>Explora un espacio dedicado a la <span class="mentoria-gratuita">mentoría gratuita</span>, con profesionales dispuestos a guiar tu camino en el mundo IT. Conecta con mentores expertos en diversas áreas de la informática.</p>
+      <div class="d-flex flex-column">
+        <div class="frase me-4">
+          <p>Explora un espacio dedicado a la <span class="mentoria-gratuita">mentoría gratuita</span>, con profesionales dispuestos a guiar tu camino en el mundo IT. Conecta con mentores expertos en diversas áreas de la informática.</p>
+        </div>
+        {% if salas_ocupadas %}
+        <div class="card cerrar-sala m-3">
+          <div class="card-body">
+            <h5 class="card-title">Tienes salas en uso:</h5>
+          </div>
+          <ul class="list-group list-group-flush">
+          {% for sala in salas_ocupadas %}
+            <li class="list-group-item d-flex align-items-center">
+              <p class="m-0">Nombre de la sala: <strong>{{sala.room_name}}</strong></p>
+              <a href="/cerrar-sala/{{sala.id}}" class="btn btn-secondary ms-3">Cerrar sala</a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
       </div>
     </div>
     <div class="row justify-content-center align-items-center ms-1">

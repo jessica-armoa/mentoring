@@ -1,0 +1,103 @@
+<h1>Available Hours for {{ mentor.user.username }}</h1>
+<div id="calendar" class="card m-2"></div>
+<button id="addEventButton">Agregar Evento</button>
+<p id="selectedDate">Fecha seleccionada: Ninguna</p>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var calendarEl = document.getElementById('calendar');
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        // Otras configuraciones
+        contentHeight: 800,
+        selectable: true,
+        businessHours: true,
+        dayMaxEvents: true,
+        eventColor: '#7209B7',
+        validRange: {
+          start: new Date().toISOString().slice(0, 10) // Fecha actual en formato ISO (yyyy-mm-dd)
+        },
+    
+        select: function (info) {
+          // Verificar si la fecha seleccionada está bloqueada
+          var selectedDate = info.start.toISOString().slice(0, 10); // Formato ISO (yyyy-mm-dd)
+          if (isDateBlocked(selectedDate)) {
+            alert('No puedes agregar eventos en fechas bloqueadas.');
+            calendar.unselect(); // Deshacer la selección
+            return;
+          }
+    
+          // Verificar si la fecha seleccionada ya tiene un evento
+          if (hasEventOnDate(selectedDate)) {
+            alert('Ya existe un evento en esta fecha.');
+            calendar.unselect(); // Deshacer la selección
+            return;
+          }
+    
+          // Habilitar el botón "Agregar Evento"
+          document.getElementById('addEventButton').removeAttribute('disabled');
+          document.getElementById('addEventButton').addEventListener('click', function () {
+            // Aquí puedes mostrar un cuadro de diálogo o un formulario para que el usuario ingrese detalles del evento
+            // Luego, puedes crear el evento utilizando AJAX o cualquier método que prefieras y agregarlo al calendario.
+            // Por ejemplo:
+            calendar.addEvent({
+              title: 'Nuevo Evento',
+              start: info.start,
+              allDay: false // Si el evento no es de todo el día
+            });
+    
+            // Registrar la fecha del evento
+            registerEventDate(selectedDate);
+    
+            // Bloquear fechas posteriores y anteriores a la fecha del evento
+            blockDates(selectedDate);
+            calendar.unselect(); // Deshacer la selección
+    
+            // Deshabilitar el botón después de agregar el evento
+            document.getElementById('addEventButton').setAttribute('disabled', true);
+          });
+        },
+    
+        // Función para permitir la selección solo en días laborables (de lunes a viernes)
+        selectAllow: function (selectInfo) {
+          return selectInfo.start.getDay() >= 1 && selectInfo.start.getDay() <= 5; // 1 a 5 representan de lunes a viernes
+        }
+      });
+    
+      calendar.render();
+    
+      // Objeto para llevar un registro de las fechas con eventos
+      var eventsByDate = {};
+    
+      // Lista para llevar un registro de las fechas bloqueadas
+      var blockedDates = [];
+    
+      // Función para verificar si una fecha está bloqueada
+      function isDateBlocked(date) {
+        return blockedDates.includes(date);
+      }
+    
+      // Función para bloquear una fecha
+      function blockDates(date) {
+        blockedDates.push(date);
+    
+        // Bloquear las fechas anteriores a esta fecha
+        var currentDate = new Date(date);
+        for (var i = 0; i < currentDate.getDate(); i++) {
+          var dateToBlock = new Date(date);
+          dateToBlock.setDate(i);
+          blockedDates.push(dateToBlock.toISOString().slice(0, 10));
+        }
+      }
+    
+      // Función para verificar si una fecha ya tiene un evento
+      function hasEventOnDate(date) {
+        return eventsByDate[date] === true;
+      }
+    
+      // Función para registrar una fecha con evento
+      function registerEventDate(date) {
+        eventsByDate[date] = true;
+      }
+    });
+    
+      </script>
+    

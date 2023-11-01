@@ -1,17 +1,49 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 
+from app.models import Availability, Meeting
+
+from datetime import datetime
+
 from app.models import Area
 from app.models import Mentor
+from app.models import GoogleMeetRoom
 
 from app.form import CustomUserCreationForm
 from app.form import CustomMentorCreationForm
+from app.form import AvailabilityForm
+from app.form import CustomMeetingCreationForm
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 import requests
+from urllib.parse import urlencode
 
 from django.contrib import messages
+
+#Para el envio de correo
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+import os
+#from google import Create_Service
+
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import get_template
+
+from datetime import datetime, timedelta
+import uuid
+
+
+from zoomus import ZoomClient
+import jwt
+import time
 
 def index(request):
     return redirect('login')
@@ -27,8 +59,9 @@ def login(request):
         # Busca el usuario por su correo electrónico
         user = User.objects.filter(email=email).first()
 
-        print(user.check_password(password))
-
+        if user is None:
+            messages.error(request,"No existe una cueta registrada con ese correo electrónico, intente registrarse.")
+            return redirect('login')
 
         if user is not None and user.check_password(password):
             request.session['user_id'] = user.id
@@ -39,6 +72,10 @@ def login(request):
 
             if user.id in all_user_id_mentors:
                 request.session['is_mentor'] = True
+
+                print("MENTOR_ID        ", user.id)
+                request.session['mentor_id'] = user.id
+
                 print("EL USER ES MENTOR")
                 return redirect("/dashboard")
             else:
@@ -181,16 +218,25 @@ def dashboard(request):
         initials = user_in_session.first_name[:1].upper() + user_in_session.last_name[:1].upper()
 
     all_areas = Area.objects.all()
+    print(all_areas)
     all_mentors = Mentor.objects.all()
+    print("22222222222222222222",all_mentors[0].areas.all())
+    is_mentor = request.session['is_mentor']
+    if is_mentor:
+        mentor = Mentor.objects.get(user_id=user_id)
+        salas_ocupadas = GoogleMeetRoom.objects.filter(meeting__mentor=mentor, meeting__start__isnull=False, is_occupied=True).distinct()
+        print("SALAS OCUPADAS: ",salas_ocupadas)
 
     if request.method == "GET":
         context = {
-            'mentors': all_mentors,  # Cambiar a 'mentores' para que coincida con tu plantilla
+            'mentors': all_mentors,
             'all_areas': all_areas,
             'selected_area_id': int(request.GET.get('area_id')) if request.GET.get('area_id') else 0,
             'user_id': user_id,
+            'is_mentor': is_mentor,
             'user_in_session': user_in_session,
             'initials': initials,
+            'salas_ocupadas': salas_ocupadas,
         }
         return render(request, "dashboard.html", context)
 
@@ -214,6 +260,17 @@ def dashboard(request):
 
         return render(request, "dashboard.html", context)
 
+def close_room(request, room_id):
+    room = get_object_or_404(GoogleMeetRoom, pk=room_id)
+
+    # Verifica si la sala está ocupada antes de intentar cerrarla
+    if room.is_occupied:
+        room.is_occupied = False
+        room.save()
+        messages.success(request, "Sala cerrada correctamente")
+    return redirect("/dashboard")
+
+
 def validate_calendly_username(request):
     username = request.GET.get('username')
     calendly_url = f'https://calendly.com/{username}'
@@ -234,16 +291,86 @@ def delete_user(request, id):
     messages.success(request, 'La cuenta se ha eliminado correctamente')
     return redirect('/login')
 
-
-def calendar(request):
+def edit_mentor(request, id):
     if 'user_id' not in request.session:
             return redirect('login')
 
+    user = User.objects.filter(id=id).first()
+    mentor = Mentor.objects.get(user=user)
+
+    if request.method == 'GET':
+        print("User a editar ", user.email)
+
+        mentor_areas = mentor.areas.all()
+        context = {'user': user, 'all_areas': Area.objects.all(), 'mentor_areas': mentor_areas,}
+        return render(request, "edit_mentor.html", context)
+
+    if request.method == 'POST':
+        new_first_name = request.POST.get('first_name')
+        new_last_name = request.POST.get('last_name')
+        new_username = request.POST.get('username')
+        new_email = request.POST.get('email')
+        new_password = request.POST.get('password1')
+
+        # Actualizar first_name y last_name siempre
+        user.first_name = new_first_name
+        user.last_name = new_last_name
+
+        # Actualizar username sin verificar si es único
+        user.username = new_username
+
+        # Actualizar email sin verificar si es único
+        user.email = new_email
+
+        # Actualizar contraseña solo si se proporciona una nueva y es diferente
+        if new_password:
+            user.set_password(new_password)
+
+        user.save()
+
+    # Actualiza los campos del mentor según sea necesario
+        new_description = request.POST.get('description')
+        new_linkedin = request.POST.get('linkedin')
+        new_website = request.POST.get('web')
+        new_github = request.POST.get('github')
+    # Actualizar campos del modelo Mentor
+        mentor.description = new_description
+        mentor.linkedin = new_linkedin
+        mentor.website = new_website
+        mentor.github = new_github
+    # Actualizar áreas seleccionadas
+        selected_areas = request.POST.getlist('areas')  # Obtiene una lista de áreas seleccionadas
+        mentor.areas.set(selected_areas)  # Actualiza las áreas asociadas al mentor
+
+    # Guarda los cambios en el mentor
+        mentor.save()
+
+
+        # Redireccionar o hacer lo que necesites después de la actualización
+        return redirect('/dashboard')
+
+from datetime import datetime
+from django.utils import timezone
+
+def calendar(request):
+    if 'user_id' not in request.session:
+        return redirect('login')
+
     user_in_session = None
+    saved_hours = None
 
     if 'user_id' in request.session:
         user_id = request.session['user_id']
         user_in_session = User.objects.filter(id=user_id).first()
+        print("Usuario en sesion: ",user_in_session)
+
+
+    if 'selected_date' in request.GET:
+        selected_date = request.GET.get('selected_date')
+        mentor_id = request.session.get('mentor_id')
+        saved_hours = Availability.objects.filter(hour__date=selected_date, mentor_id=mentor_id)
+        print("SAVED HOURS", saved_hours)
+
 
     initials = None
     if user_in_session is not None:
@@ -254,5 +381,137 @@ def calendar(request):
             'user_id': user_id,
             'user_in_session': user_in_session,
             'initials': initials,
+            'saved_hours': saved_hours
         }
+
         return render(request, "calendar.html", context)
+
+    if request.method == 'POST':
+        form = AvailabilityForm(request.POST)
+        if form.is_valid():
+            datetime_values = form.cleaned_data
+            mentor_id = request.session.get('mentor_id')
+            print("MENTOR_ID", mentor_id)
+            if mentor_id is not None:
+                for datetime_value in datetime_values:
+                    availability = Availability(hour=datetime_value, mentor_id=mentor_id)
+                    print("AVAILABILITY", availability)
+                    availability.save()
+                return redirect('/calendar')
+    else:
+        form = AvailabilityForm()
+
+    return render(request, 'calendar.html', {'form': form})
+from django.urls import reverse
+
+def delete_hour(request, hour_id):
+    selected_date = request.GET.get('selected_date', None)
+    print("Selected", selected_date)
+
+    horario = Availability.objects.get(pk=hour_id)
+
+    horario.delete()
+
+    calendar_url = reverse('calendar')
+    if selected_date:
+        calendar_url += f'?selected_date={selected_date}'
+
+    return redirect(calendar_url)
+
+def user_calendar(request, mentor_id):
+
+    user_in_session = None
+
+    if 'user_id' in request.session:
+        user_id = request.session['user_id']
+        user_in_session = User.objects.filter(id=user_id).first()
+        print("Usuario en sesion: ",user_in_session)
+
+    initials = None
+    if user_in_session is not None:
+        initials = user_in_session.first_name[:1].upper() + user_in_session.last_name[:1].upper()
+
+    mentor = Mentor.objects.get(pk=mentor_id)
+    available_hours = Availability.objects.filter(mentor=mentor)
+
+    if request.method == "GET":
+        context = {
+            'user_id': user_id,
+            'user_in_session': user_in_session,
+            'initials': initials,
+            'mentor': mentor,
+            'available_hours': available_hours,
+            'is_mentor': request.session['is_mentor'],
+        }
+
+        return render(request, 'calendar_user.html', context)
+
+    if request.method == "POST":
+        print(request.POST)
+        form = CustomMeetingCreationForm(request.POST)
+        print(form.is_valid())
+        if form.is_valid():
+            # Obtener el horario disponible seleccionado
+            cleaned_data = form.clean()
+            availability_id = cleaned_data.get('availability_id')
+            description = cleaned_data.get('description')
+
+            start = Availability.objects.get(id=availability_id)
+            print(start)
+
+            # Obtener una sala aleatoria no ocupada
+            sala_disponible = GoogleMeetRoom.objects.filter(is_occupied=False).order_by('?').first()
+
+            if sala_disponible:
+                meeting = form.save(commit=False)
+                meeting.room = sala_disponible
+                meeting.description = description
+                meeting.start = start
+                meeting.user = user_in_session
+                meeting.mentor = mentor
+
+                correos = [user_in_session.email, mentor.user.email]
+                print(".................",correos)
+
+                meeting.save()
+                print(meeting)
+                start.is_available = False
+                start.save()
+                # Marcar la sala como ocupada
+                sala_disponible.is_occupied = True
+                sala_disponible.save()
+
+                # Envía el correo después de guardar la mentoría
+                asunto = "Mentoría gratuíta con Mentoring.dev"
+                plantilla = "correo.html"
+                contexto = {
+                    'user': user_in_session,
+                    'mentor': mentor,
+                    'reunion': meeting,
+                    'horario': start
+                }
+                mensaje = render_to_string(plantilla, contexto)
+                enviar_correo(asunto, mensaje, mentor, user_in_session)
+
+                messages.success(request, 'Revisa tu correo, te hemos mandado la información de la reunión')
+                #190930802259-cuv3k92k38th8pqhebjhbug426vnths0.apps.googleusercontent.com
+            else:
+                messages.error(request, 'Lo sentimos, no tenemos salas disponibles, intente de nuevo más tarde')
+
+            return redirect("/user/"+str(mentor_id)+"/calendar/")
+
+def enviar_correo(asunto, mensaje, mentor, usuario):
+    # Obtener las direcciones de correo del mentor y el usuario
+    correo_mentor = mentor.user.email
+    correo_usuario = usuario.email
+
+    # Enviar correo
+    send_mail(
+        asunto,
+        "",
+        settings.EMAIL_HOST_USER,
+        [correo_mentor, correo_usuario],
+        html_message=mensaje,
+        fail_silently=False,
+    )
+

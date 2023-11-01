@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Calendar{% endblock %}
+
+{% block style %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/calendar_user.css' %}" />
+
+
+{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="width: 100vw; height: 100vh;">
+    <div class="sidebar d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary mt-3" style="width: 280px; height:95vh">
+        <a href="/dashboard"
+            class="d-flex align-items-center mb-3 ms-md-0 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+            <h3 class="title">Mentoring.dev</h3>
+        </a>
+        <hr>
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item">
+                <a href="/dashboard" class="nav-link active" aria-current="page">
+                    <i class="fa-solid fa-house"></i>
+                    Inicio
+                </a>
+            </li>
+            {% if is_mentor %}
+            <li>
+                <a href="/calendar" class="nav-link link-body-emphasis">
+                <i class="fa-solid fa-calendar"></i>
+                Calendario
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+        <hr>
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle"
+                data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
+                <strong>{{ initials }}</strong>
+            </a>
+            <ul class="dropdown-menu text-small shadow">
+                <li><a class="dropdown-item" href="edit/user/{{user_id}}">Editar perfil</a></li>
+                <li><a class="dropdown-item text-danger" id="show_del_modal" data-bs-toggle="modal"
+                        data-bs-target="#del_user_modal" href="#">Eliminar cuenta</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="/logout">Cerrar sesion</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <h2 class="mt-2 ms-3">Calendario de {{mentor.user.first_name}} {{mentor.user.last_name}}</h2>
+        <div id="mentor-calendar"></div>
+
+        <div id="button-container"></div>
+
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Reservar Mentoría con {{mentor.user.first_name}} {{mentor.user.last_name}}</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modal-disponibilidad">
+                    <div id="mensaje-ocupado">Lo sentimos, {{ mentor.user.first_name }} {{ mentor.user.last_name }} no está disponible en este horario.</div>
+                    <div id="formulario">
+                        <form method="post" action="" class="d-flex flex-column">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <input type="hidden" name="availability_id" id="availability" value="">
+                            </div>
+                            <div class="mb-3">
+                                <label for="date" class="form-label">Fecha:</label>
+                                <input type="text" class="form-control" id="date" name="date" value="FECHA EVENTO" disabled>
+                            </div>
+                            <div class="mb-3">
+                                <label for="start" class="form-label">Hora:</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="start" name="start" value="INICIO" disabled>
+                                    <span class="input-group-text">a</span>
+                                    <input type="text" class="form-control" id="end" name="end" value="FIN" disabled>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Descripción de la mentoría:</label>
+                                <textarea class="form-control" id="description" name="description"></textarea>
+                            </div>
+                            <button class="btn btn-primary" type="submit">Reservar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="del_user_modal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">¿Estás seguro de que deseas eliminar tu cuenta?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Si eliminas la cuenta se perderán todos los datos y no será posible recuperarlos.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <a href="delete/user/{{user_id}}" type="button" class="btn btn-primary" id="confirm_del_user">Si, quiero eliminar mi cuenta</a>
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+    {% endblock %}
+
+    {% block script %}
+    {% load static %}
+    <script src="{% static 'js/dashboard.js' %}"></script>
+    <script src="{% static 'js/index.global.js' %}"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var mentorAvailableHours = [
+                {% for hour in available_hours %}
+                {
+                    title: '{{ hour.is_available|yesno:"disponible,ocupado" }}',
+                    start: '{{ hour.hour|date:"Y-m-d H:i" }}',
+                    id: '{{ hour.id }}',
+                    is_available: '{{ hour.is_available }}',
+                    available_id: '{{ hour.id }}',
+                    {% if not hour.is_available %}
+                    color: 'red',
+                    className: 'ocupado',
+                    {% endif %}
+                },
+                {% endfor %}
+            ];
+
+            var currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+
+            // Calcula el primer día del mes siguiente
+            var nextMonth = new Date(currentDate);
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            var firstDayOfNextMonth = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 1);
+
+            // Calcula el último día del mes siguiente
+            var lastDayOfNextMonth = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0);
+
+            var calendarEl = document.getElementById('mentor-calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: 'es',
+                initialView: 'dayGridMonth',
+                events: mentorAvailableHours,
+                validRange: {
+                    start: currentDate,
+                    end: lastDayOfNextMonth,
+                },
+                contentHeight: 'auto',
+                contentWidth: 'auto',
+                eventClick: function (info) {
+                    $('#myModal').modal('show');
+                    //guardo el id de la disponibilidad seleccionada
+                    document.getElementById('availability').value = info.event.extendedProps.available_id;
+                    console.log("ID: ",document.getElementById('availability').value);
+                    // Verifica si el evento está ocupado
+                    if (info.event.extendedProps.is_available === "False") {
+                        // El evento está ocupado, muestra un mensaje diferente
+                        document.getElementById('mensaje-ocupado').style.display = 'block';
+                        document.getElementById('formulario').style.display = 'none';
+                    } else {
+                        // El evento está disponible, muestra el formulario
+                        document.getElementById('formulario').style.display = 'block';
+                        document.getElementById('mensaje-ocupado').style.display = 'none';
+
+                        // Obtén la fecha del evento
+                        var eventStart = info.event.start;
+                        // Calcula la hora de fin sumando 30 minutos a la hora de inicio
+                        var eventEnd = new Date(eventStart.getTime() + 30 * 60000); // 30 minutos en milisegundos
+
+                        // Array de nombres de meses
+                        var monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+                        // Obtén el nombre del mes
+                        var monthName = monthNames[eventStart.getMonth()];
+                        // Construye la fecha en el formato deseado
+                        var formattedDate = monthName + " " + eventStart.getDate() + ", " + eventStart.getFullYear();
+                        // Actualiza el valor del campo de fecha en el modal
+                        document.getElementById('date').value = formattedDate;
+
+                        // Formatea las horas
+                        var startHour = eventStart.getHours().toString().padStart(2, '0');
+                        var startMinute = eventStart.getMinutes().toString().padStart(2, '0');
+                        var endHour = eventEnd.getHours().toString().padStart(2, '0');
+                        var endMinute = eventEnd.getMinutes().toString().padStart(2, '0');
+
+                        // Construye las horas en el formato deseado
+                        var formattedStartTime = startHour + ':' + startMinute;
+                        var formattedEndTime = endHour + ':' + endMinute;
+
+                        // Actualiza los campos de hora en el modal
+                        document.getElementById('start').value = formattedStartTime;
+                        document.getElementById('end').value = formattedEndTime;
+                    }
+                },
+                weekNumbersWithinDays: true,
+                fixedWeekCount: false,
+                dayMaxEventRows: true,
+                eventTimeFormat: { // Formato de hora de eventos
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    meridiem: false // No mostrar 'am' o 'pm'
+                },
+            });
+
+            // Escucha el evento de redimensionamiento de la ventana para ajustar el tamaño del calendario
+            window.addEventListener('resize', function () {
+                calendar.updateSize();
+            });
+
+            calendar.render();
+        });
+
+
+    </script>
+
+
+    {% endblock %}

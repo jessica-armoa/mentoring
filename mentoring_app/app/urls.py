@@ -9,9 +9,13 @@ urlpatterns = [
     path('register/user', views.register_user),
     path('edit/user/<int:id>', views.edit_user),
     path('register/mentor', views.register_mentor),
+    path('edit/mentor/<int:id>', views.edit_mentor),
     path('guia/mentor', views.guia_mentor),
     path('dashboard', views.dashboard),
-    path('calendar', views.calendar),
+    path('calendar', views.calendar,  name='calendar'),
     path('validate_calendly_username/', views.validate_calendly_username, name='validate_calendly_username'),
     path('delete/user/<int:id>', views.delete_user),
+    path('user/<int:mentor_id>/calendar/', views.user_calendar, name='user_calendar'),
+    path('delete_hour/<int:hour_id>/', views.delete_hour, name='delete_hour'),
+    path('cerrar-sala/<int:room_id>', views.close_room)
 ]

@@ -30,7 +30,8 @@
         </div>
         {% if mentor.user_id != user_id %}
         <div class="d-flex align-items-center">
-          <a href="https://calendly.com/{{mentor.user.username}}/mentoring-dev" class="btn btn-primary">Pedir Mentoría</a>
+          <a href="{% url 'user_calendar' mentor_id=mentor.id %}" class="btn btn-primary">Pedir Mentoría</a>
+          <!--<a href="https://calendly.com/{{mentor.user.username}}/mentoring-dev" class="btn btn-primary">Pedir Mentoría</a>-->
         </div>
         {% endif %}
       </div>
